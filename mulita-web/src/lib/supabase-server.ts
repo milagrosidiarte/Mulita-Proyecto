@@ -1,5 +1,5 @@
 // crea el cliente de Supabase que se usa del lado servidor (no se usa en componentes del navegador) para manejar autenticación y operaciones de base de datos
-import { createClient } from "@supabase/supabase-js"; //
+import { createClient } from "@supabase/supabase-js"; 
 
 // Cliente para el servidor (API routes, middleware, etc.)
 export const supabaseServer = createClient(
