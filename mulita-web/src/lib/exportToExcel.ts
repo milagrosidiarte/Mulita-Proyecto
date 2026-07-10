@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 
+// Definición de la interfaz para los datos del usuario
 interface UsuarioData {
   id: string;
   nombre: string;
@@ -19,7 +20,7 @@ export const exportUsuariosToExcel = (usuarios: UsuarioData[], filename = "usuar
   // Mapear los datos para mostrar en el Excel
   const data = usuarios.map((usuario) => ({
     ID: usuario.id,
-    "Nombre y Apellido": `${usuario.nombre || ""} ${usuario.apellido || ""}`.trim(),
+    "Nombre y Apellido": `${usuario.nombre || ""} ${usuario.apellido || ""}`.trim(), // Combina nombre y apellido, eliminando espacios extra
     Email: usuario.email,
     Rol: usuario.rol,
     País: usuario.pais || "Sin especificar",
@@ -27,11 +28,11 @@ export const exportUsuariosToExcel = (usuarios: UsuarioData[], filename = "usuar
     Ciudad: usuario.ciudad || "Sin especificar",
     Institución: usuario.institucion || "Sin especificar",
     "Fecha de Creación": usuario.created_at
-      ? new Date(usuario.created_at).toLocaleDateString("es-AR")
+      ? new Date(usuario.created_at).toLocaleDateString("es-AR") // formatea la fecha si hay, como fecha argentina
       : "N/A",
   }));
 
-  // Crear un nuevo workbook
+  // Crear un nuevo workbook, lo convierte a hoja de excel
   const ws = XLSX.utils.json_to_sheet(data);
 
   // Ajustar el ancho de las columnas
@@ -48,7 +49,7 @@ export const exportUsuariosToExcel = (usuarios: UsuarioData[], filename = "usuar
   ];
   ws["!cols"] = colWidths;
 
-  // Crear workbook y agregar la hoja
+  // Crear workbook y agregar la hoja llamada Usuarios
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Usuarios");
 
