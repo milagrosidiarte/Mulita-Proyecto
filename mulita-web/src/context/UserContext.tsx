@@ -1,11 +1,11 @@
-"use client";
+"use client"; // corre en el navegador
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientSupabase } from "@/lib/supabase";
 import { toast } from "react-hot-toast";
 
-interface User {
+interface User { // Define la estructura del usuario, es la forma de los datos que se esperan.
   id: string;
   email: string;
   rol: string;
@@ -18,14 +18,14 @@ interface User {
 }
 
 interface UserContextType {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  logout: () => Promise<void>;
-  loading: boolean;
-  isSuperAdmin: () => boolean;
+  user: User | null; // usuario actual, puede ser null si no hay sesión
+  setUser: (user: User | null) => void; // función para actualizar el usuario en el contexto
+  logout: () => Promise<void>; // función para cerrar sesión
+  loading: boolean; // indica si todavía se está cargando el usuario
+  isSuperAdmin: () => boolean; //para saber si es SuperAdmin
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+const UserContext = createContext<UserContextType | undefined>(undefined); // crea el “contenedor” donde va a vivir esa información.
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
