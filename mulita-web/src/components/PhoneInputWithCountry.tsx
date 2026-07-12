@@ -11,87 +11,87 @@ interface Country {
   flag: string;
 }
 
-const COUNTRY_LIST: Country[] = countries
-  .map((code) => {
+const COUNTRY_LIST: Country[] = countries // Obtener la lista de países desde country-flag-icons
+  .map((code) => { // Mapeamos cada código de país a un objeto Country
     try {
-      const callingCode = getCountryCallingCode(code as any);
-      return {
+      const callingCode = getCountryCallingCode(code as any); // Obtenemos el código de llamada del país usando libphonenumber-js
+      return { // Devolvemos un objeto Country con el código, nombre, código de llamada y bandera del país
         code,
-        name: new Intl.DisplayNames(["es"], { type: "region" }).of(code) || code,
-        callingCode: `+${callingCode}`,
-        flag: String.fromCodePoint(...[...code].map((x) => 0x1f1a5 + x.charCodeAt(0))),
+        name: new Intl.DisplayNames(["es"], { type: "region" }).of(code) || code, // Obtenemos el nombre del país en español, si no está disponible usamos el código
+        callingCode: `+${callingCode}`, // Agregamos el signo + al código de llamada
+        flag: String.fromCodePoint(...[...code].map((x) => 0x1f1a5 + x.charCodeAt(0))), // Convertimos el código de país a un emoji de bandera
       };
-    } catch {
+    } catch { // Si hay un error (por ejemplo, código de país inválido), devolvemos null
       return null;
     }
   })
-  .filter(Boolean) as Country[];
+  .filter(Boolean) as Country[]; // Filtramos los valores nulos y aseguramos que el resultado sea un array de Country
 
-COUNTRY_LIST.sort((a, b) => a.name.localeCompare(b.name));
+COUNTRY_LIST.sort((a, b) => a.name.localeCompare(b.name)); // Ordenamos la lista de países alfabéticamente por nombre
 
-interface PhoneInputWithCountryProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
+// Props: informacion de entrada que un componente recibe de su padre para poder funcionar.
+interface PhoneInputWithCountryProps { // Definimos las props del componente PhoneInputWithCountry
+  value: string; // El valor del número de teléfono, incluyendo el código de país
+  onChange: (value: string) => void; // Función que se llama cuando el valor del número de teléfono cambia
+  placeholder?: string; // Placeholder opcional para el input del número de teléfono
 }
 
-export default function PhoneInputWithCountry({
+export default function PhoneInputWithCountry({ // Componente que combina un selector de país y un input de teléfono
   value,
   onChange,
   placeholder = "Teléfono",
-}: PhoneInputWithCountryProps) {
-  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRY_LIST.find((c) => c.code === "AR") || COUNTRY_LIST[0]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const dropdownRef = useRef<HTMLDivElement>(null);
+}: PhoneInputWithCountryProps) { // Desestructuramos las props recibidas
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRY_LIST.find((c) => c.code === "AR") || COUNTRY_LIST[0]); // Estado para el país seleccionado, por defecto Argentina o el primer país de la lista
+  const [isOpen, setIsOpen] = useState(false); // Estado para controlar si el dropdown de países está abierto o cerrado
+  const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda en el dropdown de países
+  const dropdownRef = useRef<HTMLDivElement>(null); // Referencia al contenedor del dropdown para detectar clics fuera del menú
 
-  const filteredCountries = COUNTRY_LIST.filter((country) =>
-    country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    country.callingCode.includes(searchTerm)
+  const filteredCountries = COUNTRY_LIST.filter((country) => // Filtramos la lista de países según el término de búsqueda
+    country.name.toLowerCase().includes(searchTerm.toLowerCase()) || // Buscamos por nombre del país
+    country.callingCode.includes(searchTerm) // Buscamos por código de llamada
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+  useEffect(() => { // Efecto que se ejecuta cuando el componente se monta y cuando cambia el estado del dropdown
+    const handleClickOutside = (event: MouseEvent) => { // 
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) { //dropdownRef.current es el contenedor del dropdown
+        setIsOpen(false); // Cerramos el dropdown si se hace clic fuera de él
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside); // Agregamos un listener para detectar clics fuera del dropdown
+    return () => document.removeEventListener("mousedown", handleClickOutside); // Limpiamos el listener cuando el componente se desmonta
   }, []);
 
-  const handleSelectCountry = (country: Country) => {
-    setSelectedCountry(country);
-    setIsOpen(false);
-    setSearchTerm("");
-    // Set only the country code
-    onChange(country.callingCode);
+  const handleSelectCountry = (country: Country) => { // Función que se llama cuando se selecciona un país del dropdown
+    setSelectedCountry(country); // Actualizamos el estado del país seleccionado
+    setIsOpen(false); // Cerramos el dropdown
+    setSearchTerm(""); // Limpiamos el término de búsqueda
+    onChange(country.callingCode); // Llamamos a la función onChange pasada como prop para actualizar el valor del teléfono
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let input = e.target.value;
-    const callingCode = selectedCountry.callingCode;
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => { // Función que se llama cuando cambia el valor del input de teléfono
+    let input = e.target.value; // Obtenemos el valor del input
+    const callingCode = selectedCountry.callingCode; // Obtenemos el código de llamada del país seleccionado
 
-    // Only allow numbers, spaces, dashes, parentheses (no + anywhere)
+    // Solo permitimos dígitos, espacios, guiones y paréntesis en el input
     input = input.replace(/[^\d\s\-()]/g, "");
 
-    // Get just the digits part after the calling code (without +)
+    // Obtener solo los dígitos del código de llamada (sin el signo +)
     const callingCodeDigits = callingCode.replace("+", "");
 
-    // If input is empty or being deleted to near the start, restore country code
+    // Si el input es vacío o más corto que el código de llamada, simplemente establecemos el valor como el código de llamada
     if (!input || input.length < callingCodeDigits.length) {
       onChange(callingCode);
       return;
     }
 
-    // If it starts with calling code already, keep it
+    // Si comienza con el código de llamada, lo dejamos tal cual y agregamos el resto del input
     if (input.startsWith(callingCodeDigits)) {
       onChange(callingCode + input.substring(callingCodeDigits.length));
       return;
     }
 
-    // Otherwise prepend calling code
+    // Si no comienza con el código de llamada, lo agregamos al principio del input
     onChange(callingCode + input);
   };
 
