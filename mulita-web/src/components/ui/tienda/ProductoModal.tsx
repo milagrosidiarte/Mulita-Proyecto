@@ -1,3 +1,4 @@
+// detalle de producto, con carrusel de imágenes y botones de compra
 "use client";
 
 import { useState, useEffect } from "react";
@@ -21,11 +22,12 @@ type ProductoModalProps = {
 };
 
 export default function ProductoModal({ open, onClose, producto }: ProductoModalProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [compraOpen, setCompraOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0); // Índice de la imagen actualmente mostrada en el carrusel
+  const [compraOpen, setCompraOpen] = useState(false); // Controla si el modal de compra está abierto
   const { user } = useUser();
   const router = useRouter();
 
+  // Efecto para bloquear el scroll del body cuando el modal está abierto
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -34,12 +36,15 @@ export default function ProductoModal({ open, onClose, producto }: ProductoModal
     }
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = ""; // funcion de limpieza de useEffect para restaurar el scroll del body cuando el componente se desmonta
     };
   }, [open]);
 
-  if (!open) return null;
+  if (!open) return null; // Si el modal no está abierto, no renderiza nada
 
+  // Función para manejar la compra directa del producto
+  // si no hay usuario logueado, avisa y redirige a login; 
+  // si hay usuario, abre el modal de compra.
   const handleComprar = () => {
     if (!user) {
       toast.error("Debes iniciar sesión para poder comprar");
@@ -52,11 +57,13 @@ export default function ProductoModal({ open, onClose, producto }: ProductoModal
   };
 
   // Item único para comprar directamente
+  // construye siempre, porque en este componente producto nunca es null 
+  // (si el modal está abierto, siempre hay un producto).
   const itemUnico: CartItem = {
     id: crypto.randomUUID(),
     producto_id: producto.id,
     carrito_id: "direct-purchase",
-    cantidad: 1, // SIEMPRE 1
+    cantidad: 1, // SIEMPRE 1, no hay selector de cantidad
     precio: producto.precio,
     producto: {
       id: producto.id,
@@ -67,14 +74,18 @@ export default function ProductoModal({ open, onClose, producto }: ProductoModal
     },
   };
 
+  // retrocede el índice de la imagen. 
+  // Si está en la primera (i === 0), salta a la última; si no, resta 1.
   const prev = () => {
     setCurrentIndex((i) => (i === 0 ? producto.imagenes.length - 1 : i - 1));
   };
 
+  // avanza el índice. Si está en la última, vuelve a la primera; si no, suma 1.
   const next = () => {
     setCurrentIndex((i) => (i === producto.imagenes.length - 1 ? 0 : i + 1));
   };
 
+  // verifica si el producto tiene más de una imagen para mostrar las flechas del carrusel
   const hasMultiple = producto.imagenes.length > 1;
 
   return (
@@ -88,7 +99,7 @@ export default function ProductoModal({ open, onClose, producto }: ProductoModal
           overflow-hidden w-full max-w-[1100px] h-[612px] 
           p-[80px_0] gap-5 text-center text-[12px] text-[#6d758f] font-inter
         "
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()} //para que no se propage el click al div padre y cierre el modal
       >
         {/* BOTÓN CERRAR */}
         <button
@@ -107,6 +118,8 @@ export default function ProductoModal({ open, onClose, producto }: ProductoModal
         </button>
 
         {/* COLUMNA IZQUIERDA */}
+        {/* Muestra el nombre grande, el precio en una etiqueta destacada al lado, 
+        y la descripción con scroll propio si es muy larga*/}
         <div
           className="
             w-[467px] flex flex-col items-start absolute

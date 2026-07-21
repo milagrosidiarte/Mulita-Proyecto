@@ -6,23 +6,24 @@ import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { toast } from "react-hot-toast";
 
+// los props sirven para pasar información al componente, en este caso el id del producto, el nombre y el precio
 interface AddToCartButtonProps {
   productoId: string;
   nombre: string;
   precio: number;
-  className?: string;
+  className?: string; // Propiedad opcional para clases CSS adicionales
 }
 
 export function AddToCartButton({
   productoId,
   nombre,
   precio,
-  className = "",
+  className = "", // Valor por defecto para className
 }: AddToCartButtonProps) {
-  const { addItem, isAddingItem } = useCart();
+  const { addItem, isAddingItem } = useCart(); // del hook useCart obtenemos la función addItem y el estado isAddingItem
   const { user } = useUser();
   const router = useRouter();
-  const [cantidad, setCantidad] = useState(1);
+  const [cantidad, setCantidad] = useState(1); //en 1 fijo
 
   const handleAddToCart = () => {
     // Verificar si el usuario está logueado
@@ -30,10 +31,11 @@ export function AddToCartButton({
       toast.error("Debes iniciar sesión para agregar productos al carrito");
       setTimeout(() => {
         router.push("/auth/login");
-      }, 1500);
-      return;
+      }, 1500); // Redirigir al usuario a la página de login después de 1.5 segundos
+      return; // Salir de la función si el usuario no está logueado
     }
-
+ 
+    // si hay usuario llama a la función addItem del hook useCart, pasando el id del producto, la cantidad y el precio
     addItem(
       { productoId, cantidad, precio },
       {

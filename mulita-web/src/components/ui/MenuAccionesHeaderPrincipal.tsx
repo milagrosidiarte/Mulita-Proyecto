@@ -5,24 +5,25 @@ import Link from "next/link";
 import { useUser } from "@/hooks/queries";
 import { useRouter } from "next/navigation";
 
+// Componente para el menú de acciones en el encabezado principal
 export default function MenuAccionesHeaderPrincipal() {
-  const { user, logout } = useUser();
+  const { user, logout } = useUser(); // se obtiene el usuario actual y la función de cierre de sesión del hook useUser
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false); // estado para controlar si el menú está abierto o cerrado
+  const menuRef = useRef<HTMLDivElement>(null); // referencia al contenedor del menú para detectar clics fuera de él
 
-  // Cerrar menú al hacer click afuera
+  // Cerrar menú al hacer click afuera 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) { // si el clic no es dentro del menú, se cierra el menú
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside); // se agrega un listener para detectar clics fuera del menú
+    return () => document.removeEventListener("mousedown", handleClickOutside); // se limpia el listener al desmontar el componente
   }, []);
 
-  if (!user) return null;
+  if (!user) return null; // si no hay usuario, no se renderiza nada
 
   return (
     <div className="relative" ref={menuRef}>

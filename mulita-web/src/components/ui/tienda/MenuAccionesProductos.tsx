@@ -2,14 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 export default function MenuAccionesProductos({
-  productoId,
-  onEliminar,
+  productoId, // ID del producto para las acciones
+  onEliminar, // Función que se llama cuando se hace click en eliminar
 }: {
-  productoId: number;
-  onEliminar: (id: number) => void;
+  productoId: number; 
+  onEliminar: (id: number) => void; // recibe un ID y no devuelve nada
 }) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState(false); // si el menu esta visible o no
+  const menuRef = useRef<HTMLDivElement | null>(null); // referencia para el div contenedor del menu
 
   // Cerrar si hago click afuera
   useEffect(() => {

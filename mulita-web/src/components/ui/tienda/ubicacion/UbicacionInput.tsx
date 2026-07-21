@@ -2,38 +2,42 @@
 
 import { useState, useEffect } from "react";
 
+// Componente de input para buscar ubicaciones usando la API de Geoapify
 export type Lugar = {
   display_name: string;
   lat: string;
   lon: string;
 };
 
+// El componente recibe un valor inicial (texto) y una función onSelect que se 
+// llama cuando el usuario selecciona un lugar de los resultados
 export default function UbicacionInput({
   value,
   onSelect,
 }: {
   value: string;
   onSelect: (lugar: Lugar) => void;
-}) {
-  const [query, setQuery] = useState(value);
-  const [resultados, setResultados] = useState<Lugar[]>([]);
-  const [loading, setLoading] = useState(false);
+}) { 
+  const [query, setQuery] = useState(value); // Estado para el texto del input
+  const [resultados, setResultados] = useState<Lugar[]>([]); // Estado para los resultados de la búsqueda
+  const [loading, setLoading] = useState(false); // Estado para indicar si se está cargando la búsqueda
 
   // Flag para evitar que el useEffect vuelva a buscar al seleccionar
   const [isSelecting, setIsSelecting] = useState(false);
 
   useEffect(() => {
-    // Si estoy seleccionando, no ejecuto el autocomplete
-    if (isSelecting) return;
+    if (isSelecting) return; // si el usuario está seleccionando un lugar, no hago la búsqueda
 
-    if (query.length < 3) {
+    if (query.length < 3) { // si el texto es muy corto, no hago la búsqueda
       setResultados([]);
       return;
     }
 
+    // Uso un timer para hacer la búsqueda 400ms después de que el usuario deje de tipear
     const timer = setTimeout(async () => {
       setLoading(true);
 
+      // Hago la llamada a la API de Geoapify para buscar lugares que coincidan con el texto del input
       const res = await fetch(
         `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
           query
@@ -44,16 +48,19 @@ export default function UbicacionInput({
 
       const data = await res.json();
 
+      // Mapeo los resultados de la API a un array de objetos Lugar
       const lugares: Lugar[] = data.features.map((f: any) => ({
         display_name: f.properties.formatted,
         lat: String(f.properties.lat),
         lon: String(f.properties.lon),
       }));
 
+      // Actualizo el estado con los resultados de la búsqueda y desactivo el loading
       setResultados(lugares);
       setLoading(false);
     }, 400);
 
+    // Limpio el timer si el componente se desmonta o si query cambia antes de que pasen los 400ms
     return () => clearTimeout(timer);
   }, [query, isSelecting]);
 
@@ -83,10 +90,10 @@ export default function UbicacionInput({
               key={index}
               className="text-left w-full px-3 py-2 hover:bg-gray-100"
               onClick={() => {
-                setIsSelecting(true);
-                setQuery(lugar.display_name);
-                setResultados([]);
-                onSelect(lugar);
+                setIsSelecting(true); // indico que el usuario está seleccionando un lugar, para evitar que se haga otra búsqueda
+                setQuery(lugar.display_name); // actualizo el input con el nombre del lugar seleccionado
+                setResultados([]); // limpio los resultados de la búsqueda
+                onSelect(lugar); // llamo a la función onSelect con el lugar seleccionado
               }}
             >
               {lugar.display_name}

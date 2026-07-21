@@ -13,7 +13,7 @@ export interface User { // Define la forma de los datos de usuario esperados, es
   docente?: any;
 }
 
-export function useUser() { //
+export function useUser() { 
   const router = useRouter();
   const queryClient = useQueryClient();
 

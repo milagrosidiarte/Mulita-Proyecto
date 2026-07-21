@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { useUser } from "@/hooks/queries";
 
 export function Footer() {
-  const pathname = usePathname();
+  const pathname = usePathname(); 
   const { user } = useUser();
 
+  // si la ruta actual coincide con alguna de esas secciones, 
+// el footer no se renderiza (return null)
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/noticias/crear") ||
@@ -25,6 +27,7 @@ export function Footer() {
   return (
     <footer className="mt-24 bg-primary text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-4 gap-10">
+        
         <div>
           <h3 className="text-lg font-bold tracking-tight">MULITA</h3>
           <p className="mt-3 text-white/80 text-sm">
@@ -37,6 +40,8 @@ export function Footer() {
             ¡Únete!
           </Link>
         </div>
+
+      
         <div className="flex flex-col items-start justify-start gap-6">
           <div className="relative leading-[22px] font-semibold">Enlaces</div>
           <div className="flex flex-col items-start justify-start gap-4 text-[#b4b9c9]">
@@ -46,6 +51,7 @@ export function Footer() {
             <Link href="/tienda" className="cursor-pointer">Tienda</Link>
           </div>
         </div>
+        
         <div className="flex flex-col items-start justify-start gap-6">
           <div className="relative leading-[22px] font-semibold">Sobre nosotros</div>
           <div className="flex flex-col items-start justify-start gap-4 text-[#b4b9c9]">
@@ -55,6 +61,7 @@ export function Footer() {
             <Link href="/sobreNosotros#donde-estamos" className="cursor-pointer">¿Dónde estamos?</Link>
           </div>
         </div>
+         
         <div className="flex flex-col items-start justify-start gap-6">
           <div className="relative leading-[22px] font-semibold">Contacto</div>
           <div className="flex flex-col items-start justify-start gap-4 text-[#b4b9c9]">

@@ -13,11 +13,14 @@ import CompraModal from "../CompraModal";
 export function CarritoPage() {
   const { items, isLoading, removeItem, updateItemQuantity, clearCart, getTotalPrice } = useCart();
   const [processing, setProcessing] = useState(false);
-  const [localQuantities, setLocalQuantities] = useState<Record<string, number>>({});
-  const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
-  const [compraOpen, setCompraOpem] = useState(false);
+  //un objeto que guarda temporalmente la cantidad que el usuario está 
+  // escribiendo en el input de cada ítem, antes de que se confirme el cambio real
+  const [localQuantities, setLocalQuantities] = useState<Record<string, number>>({}); 
+  const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({}); // un objeto que guarda los timers de debounce para cada ítem, para evitar que se hagan demasiadas llamadas al servidor mientras el usuario escribe
+  const [compraOpen, setCompraOpen] = useState(false);
   const [showConfirmClearCart, setShowConfirmClearCart] = useState(false);
 
+  // Función para eliminar un ítem del carrito
   const handleRemoveItem = (itemId: string) => {
     setProcessing(true);
     removeItem(
@@ -35,8 +38,9 @@ export function CarritoPage() {
     );
   };
 
+  // Función para actualizar la cantidad de un ítem en el carrito
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
+    if (newQuantity < 1) return; // Evitar cantidades menores a 1
     setProcessing(true);
     updateItemQuantity(
       { itemId, newQuantity },
@@ -50,31 +54,33 @@ export function CarritoPage() {
     );
   };
 
+  // Función para manejar el cambio de cantidad en el input, con debounce
   const handleQuantityInput = (itemId: string, value: number) => {
     if (value > 0) {
-      setLocalQuantities((prev) => ({ ...prev, [itemId]: value }));
+      setLocalQuantities((prev) => ({ ...prev, [itemId]: value })); // Guardar la cantidad localmente mientras el usuario escribe, para que el input se vea con el número que el usuario está escribiendo
       
-      // Limpiar el timeout anterior si existe
+      // Limpiar el timeout anterior si existe, para no disparar múltiples actualizaciones si el usuario sigue escribiendo
       if (debounceTimers.current[itemId]) {
-        clearTimeout(debounceTimers.current[itemId]);
+        clearTimeout(debounceTimers.current[itemId]); 
       }
       
       // Crear un nuevo timeout para actualizar después de 800ms
       debounceTimers.current[itemId] = setTimeout(async () => {
-        const item = items.find((i: any) => i.id === itemId);
-        if (item && value !== item.cantidad) {
-          await handleQuantityChange(itemId, value);
+        const item = items.find((i: any) => i.id === itemId); // Buscar el ítem correspondiente en el carrito
+        if (item && value !== item.cantidad) { // compara si el valor realmente cambió,
+          await handleQuantityChange(itemId, value); // llama a la función que actualiza la cantidad en el carrito
         }
         // Limpiar el estado local
         setLocalQuantities((prev) => {
-          const newState = { ...prev };
-          delete newState[itemId];
-          return newState;
+          const newState = { ...prev }; // crear una copia del estado anterior
+          delete newState[itemId]; // eliminar la propiedad del ítem que ya se actualizó
+          return newState; // actualizar el estado con la copia modificada
         });
-      }, 800);
+      }, 800); // 800ms de debounce para evitar múltiples llamadas al servidor mientras el usuario escribe
     }
   };
 
+  // Función para vaciar el carrito
   const handleClearCart = async () => {
     setProcessing(true);
     clearCart(
@@ -83,11 +89,11 @@ export function CarritoPage() {
         onSuccess: () => {
           toast.success("Carrito vaciado exitosamente");
           setProcessing(false);
-          setShowConfirmClearCart(false);
+          setShowConfirmClearCart(false); // Cerrar el diálogo de confirmación después de vaciar el carrito
         },
         onError: (error) => {
           toast.error("Error al vaciar carrito");
-          setProcessing(false);
+          setProcessing(false); // no cierrar el diálogo de confirmación si hay un error
         },
       }
     );
@@ -95,7 +101,7 @@ export function CarritoPage() {
 
   // Obtener cantidad actual del input local o del item
   const getItemQuantity = (itemId: string, defaultQuantity: number) => {
-    return localQuantities[itemId] !== undefined ? localQuantities[itemId] : defaultQuantity;
+    return localQuantities[itemId] !== undefined ? localQuantities[itemId] : defaultQuantity; // si hay un valor local, usarlo, sino usar el valor del item
   };
 
   if (isLoading) {
@@ -128,6 +134,7 @@ export function CarritoPage() {
             <p className="text-gray-600">{items.length} producto{items.length !== 1 ? "s" : ""}</p>
           </div>
 
+          {/* Contenido del carrito */}
           {items.length === 0 ? (
             <div className="bg-white rounded-lg shadow p-8 text-center">
               <div className="mb-4">
@@ -280,7 +287,7 @@ export function CarritoPage() {
 
                   {/* Botón checkout */}
                   <button 
-                    onClick={() => setCompraOpem(true)}
+                    onClick={() => setCompraOpen(true)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition mb-3"
                   >
                     Proceder al pago
@@ -299,7 +306,7 @@ export function CarritoPage() {
               {/* MODAL DE COMPRA */}
               <CompraModal
                 open={compraOpen}
-                onClose={() => setCompraOpem(false)}
+                onClose={() => setCompraOpen(false)}
                 items={items}
                 source="cart"
               />

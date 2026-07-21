@@ -1,3 +1,5 @@
+// componente principal del encabezado, se encarga de montar la barra superior de la web con 
+// navegación, logo, menú de usuario y el estado de autenticación.
 "use client";
 
 import Link from "next/link";
@@ -6,12 +8,13 @@ import { usePathname } from "next/navigation";
 import MenuAccionesHeaderPrincipal from "./MenuAccionesHeaderPrincipal";
 import { CartIcon } from "@/components/ui/tienda/carrito/CartIcon";
 
-
-
+// define el componente Header. Extrae el usuario actual usando el hook useUser 
+// y la ruta actual usando usePathname.
 export default function Header() {
   const { user } = useUser();
   const pathname = usePathname();
 
+  // en esas pantallas no se muestra el header principal
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/noticias/crear") ||
@@ -21,6 +24,8 @@ export default function Header() {
     return null;
   }
 
+  // define los enlaces de navegación principales del header.
+  // la URL (href) y el texto que se muestra (label)
   const navLinks = [
     { href: "/", label: "Inicio" },
     { href: "/noticias", label: "Noticias" },
@@ -28,6 +33,7 @@ export default function Header() {
     { href: "/tienda", label: "Tienda" },
     { href: "/sobreNosotros", label: "Sobre nosotros" },
   ];
+
 
   return (
     <header className="sticky top-0 z-[9999] bg-white/90 backdrop-blur border-b border-light">
@@ -67,7 +73,7 @@ export default function Header() {
             );
           })}
 
-          {/* Botón Dashboard solo para admins */}
+          {/* Botón Dashboard solo para admin o superAdmin*/}
           {(user?.rol === "admin" || user?.rol === "superAdmin") && (
             <li>
               <Link href="/dashboard" className="btn btn--yellow">
@@ -79,7 +85,7 @@ export default function Header() {
 
         {/* Acciones (registro/login o menú usuario) */}
         <div className="flex items-center gap-4">
-          {!user ? (
+          {!user ? ( // Si no hay usuario logueado (!user), muestra los botones de Registro y Log In.
             <>
               <Link href="/auth/register" className="btn btn--yellow">
                 Registro
@@ -88,7 +94,7 @@ export default function Header() {
                 Log In
               </Link>
             </>
-          ) : (
+          ) : ( // Si hay usuario logueado (user), muestra el ícono del carrito y el menú de acciones del usuario.
             <>
               <CartIcon />
               <MenuAccionesHeaderPrincipal />
