@@ -1,5 +1,8 @@
 "use client"; // corre en el navegador
 
+// Contexto de usuario para manejar la sesión y el estado del usuario en toda la aplicación.
+//Sirve para compartir estado global entre muchos componentes sin pasar props manualmente por cada nivel.
+
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientSupabase } from "@/lib/supabase";

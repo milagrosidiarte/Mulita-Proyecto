@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
+// Este hook encapsula la lógica de obtener el usuario actual 
+// y manejar el logout, usando React Query para manejar 
+// el estado de la petición y la mutación.
+
 export interface User { // Define la forma de los datos de usuario esperados, esto tipa el user que vuelve del endpoint.
   id: string;
   email: string;
@@ -91,4 +95,5 @@ export function useUser() {
 // guardar ese dato mientras la app lo necesita, y ofrecer una forma fácil de cerrar sesión.
 // En vez de repetir en cada pantalla “andá a buscar el usuario”, 
 // este archivo concentra esa lógica en una función reutilizable llamada useUser. 
-// Eso hace que cualquier componente pueda pedir el usuario actual con una sola línea.
+// Eso hace que cualquier componente pueda pedir el usuario actual con una sola línea que seria: 
+// const { user, isLoading, error } = useUser();
