@@ -14,7 +14,7 @@ export default function BackButton() {
     // Siempre volver un nivel arriba en la ruta
     if (segments.length > 1) {
       const parentPath = "/" + segments.slice(0, segments.length - 1).join("/");
-      router.push(parentPath);
+      router.push(parentPath); // Navegar al nivel superior
     } else {
       router.back();
     }

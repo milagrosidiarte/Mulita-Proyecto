@@ -2,33 +2,38 @@
 
 import { useEffect, useRef, useState, memo, useCallback } from "react";
 
+// Filtros.tsx es un componente que contiene filtros para la sección de comunidad. 
+// Permite filtrar actividades por categorías y por fecha.
 interface Categoria {
   id: string;
   nombre: string;
-  tipo?: "curso" | "dificultad" | "materia";
+  tipo?: "curso" | "dificultad" | "materia"; // Tipo de categoría, puede ser curso, dificultad o materia
 }
+
 
 interface FiltroCategoriaProps {
   categoriasSeleccionadas: string[];
   onChange: (categorias: string[]) => void;
 }
-
+// FiltroFechaProps define las propiedades del filtro de fecha.
 interface FiltroFechaProps {
-  fechaSeleccionada: string;
-  onChange: (fecha: string) => void;
+  fechaSeleccionada: string; // Fecha seleccionada
+  onChange: (fecha: string) => void; // Función para manejar el cambio de fecha
 }
 
-function FiltroCategoriaComponent({ categoriasSeleccionadas, onChange }: FiltroCategoriaProps) {
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [localSeleccionadas, setLocalSeleccionadas] = useState<string[]>(categoriasSeleccionadas);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+// FiltroCategoriaComponent es un componente que muestra un dropdown para seleccionar categorías.
+function FiltroCategoriaComponent({ categoriasSeleccionadas, onChange }: FiltroCategoriaProps) { // Recibimos las categorías seleccionadas y la función para manejar cambios
+  const [categorias, setCategorias] = useState<Categoria[]>([]);  // Estado para almacenar las categorías obtenidas desde la API
+  const [isOpen, setIsOpen] = useState(false); // Estado para controlar si el dropdown está abierto o cerrado
+  const [localSeleccionadas, setLocalSeleccionadas] = useState<string[]>(categoriasSeleccionadas); // Estado local para manejar las categorías seleccionadas dentro del componente antes de notificar al parent
+  const dropdownRef = useRef<HTMLDivElement>(null); // Referencia al contenedor del dropdown para detectar clics fuera de él
 
   // Sincronizar estado local con props cuando se reciben del parent
   useEffect(() => {
-    setLocalSeleccionadas(categoriasSeleccionadas);
-  }, [categoriasSeleccionadas]);
+    setLocalSeleccionadas(categoriasSeleccionadas); // Actualizamos el estado local cuando las props cambian, para mantener la consistencia entre el parent y el componente
+  }, [categoriasSeleccionadas]); 
 
+  // Obtener categorías desde la API al montar el componente
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
@@ -40,7 +45,7 @@ function FiltroCategoriaComponent({ categoriasSeleccionadas, onChange }: FiltroC
         console.error(err);
       }
     };
-    fetchCategorias();
+    fetchCategorias(); 
   }, []);
 
   // Cerrar dropdown solo cuando hace click fuera
@@ -57,50 +62,56 @@ function FiltroCategoriaComponent({ categoriasSeleccionadas, onChange }: FiltroC
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen, localSeleccionadas, onChange]);
+  }, [isOpen, localSeleccionadas, onChange]); // Dependencias: se ejecuta cuando cambia el estado de apertura del dropdown, las categorías seleccionadas o la función onChange
 
   // Manejar tecla Enter para cerrar dropdown y cargar filtros
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Enter" && isOpen) {
-        event.preventDefault();
-        onChange(localSeleccionadas);
-        setIsOpen(false);
+        event.preventDefault(); // Prevenir el comportamiento por defecto de Enter 
+        onChange(localSeleccionadas); // Notificar al parent con las categorías seleccionadas
+        setIsOpen(false); // Cerrar el dropdown
       }
     };
 
+    // Agregar y remover el listener de teclado solo cuando el dropdown está abierto
     if (isOpen) {
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
   }, [isOpen, localSeleccionadas, onChange]);
 
+  // Manejar cambios en la selección de categorías
   const handleCategoriaChange = useCallback((nombre: string) => {
-    setLocalSeleccionadas(prev => {
-      if (prev.includes(nombre)) {
-        return prev.filter((c) => c !== nombre);
+    setLocalSeleccionadas(prev => { // Actualizamos el estado local de categorías seleccionadas
+      if (prev.includes(nombre)) { 
+        return prev.filter((c) => c !== nombre); // Si ya estaba seleccionada, la removemos
       } else {
-        return [...prev, nombre];
+        return [...prev, nombre]; // Si no estaba seleccionada, la agregamos
       }
     });
   }, []);
 
-  const handleCheckboxClick = useCallback((e: React.ChangeEvent<HTMLInputElement>, nombre: string) => {
+  // Manejar clic en el checkbox de una categoría sin cerrar el dropdown
+  const handleCheckboxClick = useCallback((e: React.ChangeEvent<HTMLInputElement>, nombre: string) => { 
     e.stopPropagation();
-    handleCategoriaChange(nombre);
+    handleCategoriaChange(nombre); // Actualizamos la selección de categorías sin cerrar el dropdown
   }, [handleCategoriaChange]);
 
+  // Manejar clic en el botón de abrir/cerrar el dropdown
   const handleButtonClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setIsOpen(prev => !prev);
+    setIsOpen(prev => !prev); // Alternamos el estado de apertura del dropdown
   }, []);
 
+  // Manejar clic en el botón de limpiar filtros
   const handleLimpiarClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
+    e.stopPropagation(); 
     setLocalSeleccionadas([]);
     onChange([]);
   }, [onChange]);
 
+  // Filtrar categorías por tipo para mostrarlas en secciones separadas
   const cursos = categorias.filter((c) => c.tipo === "curso");
   const materias = categorias.filter((c) => c.tipo === "materia");
   const dificultades = categorias.filter((c) => c.tipo === "dificultad");
@@ -115,7 +126,7 @@ function FiltroCategoriaComponent({ categoriasSeleccionadas, onChange }: FiltroC
           <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
           </svg>
-          {localSeleccionadas.length === 0
+          {localSeleccionadas.length === 0 // Si no hay categorías seleccionadas, mostramos "Categorías", de lo contrario mostramos la cantidad de categorías seleccionadas
             ? "Categorías"
             : `${localSeleccionadas.length} seleccionada${localSeleccionadas.length > 1 ? "s" : ""}`}
         </span>
@@ -221,8 +232,10 @@ function FiltroCategoriaComponent({ categoriasSeleccionadas, onChange }: FiltroC
   );
 }
 
+// Memoizamos el componente FiltroCategoria para evitar renders innecesarios cuando las props no cambian
 export const FiltroCategoria = memo(FiltroCategoriaComponent);
 
+// FiltroFecha es un componente que muestra un dropdown para seleccionar un filtro de fecha.
 export function FiltroFecha({ fechaSeleccionada, onChange }: FiltroFechaProps) {
   const [isOpen, setIsOpen] = useState(false);
   const opciones = [
@@ -233,6 +246,7 @@ export function FiltroFecha({ fechaSeleccionada, onChange }: FiltroFechaProps) {
     { label: "De más antiguo a más nuevo", value: "antiguo_nuevo" },
   ];
 
+  // Manejar cambio de selección de fecha
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onChange(e.target.value);
   };

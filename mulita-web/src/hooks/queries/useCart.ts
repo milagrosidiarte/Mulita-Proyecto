@@ -63,7 +63,7 @@ export function useCart() {
 
   // Agregar item
   const addItemMutation = useMutation({
-    mutationFn: async (variables: {
+    mutationFn: async (variables: { // mutationFn funciona como la función que realiza la acción de agregar un item al carrito. Recibe un objeto con los parámetros necesarios para la operación.
       productoId: string;
       cantidad: number;
       precio: number;

@@ -17,16 +17,16 @@ export default function ResetPasswordConfirmPage() {
     // Validar que el usuario tenga una sesión válida (desde el link del email)
     const validateSession = async () => {
       try {
-        const supabase = createClientSupabase();
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const supabase = createClientSupabase(); // Crea una instancia del cliente de Supabase
+        const { data: { session }, error } = await supabase.auth.getSession(); // Obtiene la sesión actual del usuario
 
         if (error || !session) {
           toast.error("Link expirado o inválido. Por favor solicita otro email de recuperación");
-          setTimeout(() => router.push("/auth/reset-password"), 2000);
+          setTimeout(() => router.push("/auth/reset-password"), 2000); // Redirige al usuario a la página de solicitud de cambio de contraseña después de 2 segundos
           return;
         }
 
-        setIsValid(true);
+        setIsValid(true); // Si la sesión es válida, actualiza el estado para permitir que el usuario cambie su contraseña
       } catch (err) {
         console.error(err);
         toast.error("Error al validar el link");
@@ -36,11 +36,11 @@ export default function ResetPasswordConfirmPage() {
       }
     };
 
-    validateSession();
+    validateSession(); // Llama a la función de validación de sesión cuando el componente se monta
   }, [router]);
 
   const onUpdateClick = async () => {
-    if (!newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword) { // Validación de campos vacíos
       toast.error("Por favor completa todos los campos");
       return;
     }
@@ -50,7 +50,7 @@ export default function ResetPasswordConfirmPage() {
       return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (newPassword !== confirmPassword) { // Validación de coincidencia de contraseñas
       toast.error("Las contraseñas no coinciden");
       return;
     }
@@ -60,7 +60,7 @@ export default function ResetPasswordConfirmPage() {
     try {
       const supabase = createClientSupabase();
       
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabase.auth.updateUser({ password: newPassword }); // Actualiza la contraseña del usuario en Supabase
 
       if (error) {
         toast.error(error.message || "Error al cambiar la contraseña");

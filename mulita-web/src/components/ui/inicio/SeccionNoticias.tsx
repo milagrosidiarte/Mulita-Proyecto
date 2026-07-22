@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SkeletonNoticias } from "./skeletons/SkeletonNoticias";
 import { set } from "zod";
 
+// Tipo de datos para representar una noticia
 interface Noticia {
   id: number;
   titulo: string;
@@ -12,17 +13,19 @@ interface Noticia {
   imagen_principal: string;
 }
 
+// Componente principal que representa la sección de noticias destacadas en la página de inicio
 export function SeccionNoticias() {
   const [noticias, setNoticias] = useState<Noticia[]>([]);
-  const [loadingNoticias, setLoadingNoticias] = useState(true);
+  const [loadingNoticias, setLoadingNoticias] = useState(true); // Estado para indicar si las noticias están siendo cargadas desde la API
 
+// Efecto que se ejecuta al montar el componente para obtener las noticias destacadas desde la API
   useEffect(() => {
     const fetchNoticias = async () => {
       setLoadingNoticias(true);
       try {
         const res = await fetch("/api/inicio/noticias");
         const data = await res.json();
-        setNoticias(data ?? []);
+        setNoticias(data ?? []); // Si no hay datos, se establece un arreglo vacío
       } catch (err) {
         console.error("Error al obtener noticias destacadas:", err);
       } finally {

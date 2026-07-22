@@ -10,12 +10,14 @@ interface HeroData {
   imagen: string;
 }
 
+// Banner principal de la página de inicio, 
+// con título, descripción, imagen y botones de acción. 
 export function Hero() {
   const [hero, setHero] = useState<HeroData>();
   const [loadingHero, setLoadingHero] = useState(true);
 
   useEffect(() => {
-    const fetchHero = async () => {
+    const fetchHero = async () => { 
       try {
         const res = await fetch("/api/inicio/hero");
         const data = await res.json();

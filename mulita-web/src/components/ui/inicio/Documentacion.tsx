@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+// Tipos de datos para la documentación
 interface Documento {
   id: number;
   tipo: "link" | "archivo" | "imagen";
@@ -10,6 +11,7 @@ interface Documento {
   nombre: string;
 }
 
+// Tipos de datos para la sección de documentación
 interface DocumentacionData {
   id: number;
   titulo: string;
@@ -17,20 +19,24 @@ interface DocumentacionData {
   documentos: Documento[];
 }
 
+// Componente de documentación que muestra una lista de documentos y enlaces,
+// con soporte para imágenes, archivos y enlaces externos.
 export function Documentacion() {
-  const [data, setData] = useState<DocumentacionData | null>(null);
+  const [data, setData] = useState<DocumentacionData | null>(null); // Estado para almacenar los datos de la documentación
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/inicio/documentacion")
-      .then((res) => res.json())
-      .then((json) => setData(json))
-      .finally(() => setLoading(false));
+      .then((res) => res.json()) // Convertir la respuesta a JSON
+      .then((json) => setData(json)) // Guardar los datos en el estado
+      .finally(() => setLoading(false)); // Cambiar el estado de carga a falso una vez que se complete la solicitud
   }, []);
 
+  // Renderizado condicional basado en el estado de carga y la disponibilidad de datos
   if (loading) return <p className="p-4">Cargando documentación...</p>;
   if (!data) return <p className="p-4">No hay documentación disponible.</p>;
 
+  // Filtrar los documentos en dos categorías: aquellos que no son imágenes y aquellos que sí lo son
   const documentosNoImagen = data.documentos.filter(doc => doc.tipo !== "imagen");
   const documentosImagen = data.documentos.filter(doc => doc.tipo === "imagen");
 
@@ -61,14 +67,15 @@ export function Documentacion() {
               {doc.tipo === "link" && (
                 <a
                   href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" // Abrir en una nueva pestaña
+                  rel="noopener noreferrer" // Seguridad para enlaces externos
                   className="text-blue-600 underline text-sm"
                 >
-                  {doc.url}
+                  {doc.url} {/* mostrar la URL del enlace */}
                 </a>
               )}
-
+              
+              {/* Mostrar el nombre del archivo o un mensaje por defecto */}
               {doc.tipo === "archivo" && (
                 <a
                   href={doc.url}

@@ -9,17 +9,20 @@ import ModalColecciones from "./ModalColecciones";
 import { useUser } from "@/hooks/queries";
 import SkeletonComentarios from "./skeletons/SkeletonComentarios";
 
+// ComentariosModal es un componente que muestra un modal con los comentarios de una actividad.
 export default function ComentariosModal({ actividad, onClose, onActualizarComentarios }: any) {
-  const [comentarios, setComentarios] = useState<any[]>([]);
+  const [comentarios, setComentarios] = useState<any[]>([]); // Estado para almacenar los comentarios de la actividad
   const [loading, setLoading] = useState(true);
-  const [modalImagenes, setModalImagenes] = useState(false);
-  const [indexImagen, setIndexImagen] = useState(0);
-  const [favoritos, setFavoritos] = useState<string[]>([]);
-  const [likesPorActividad, setLikesPorActividad] = useState<Record<string, number>>({});
-  const [modalColecciones, setModalColecciones] = useState(false);
+  const [modalImagenes, setModalImagenes] = useState(false); // Estado para controlar la apertura del modal de imágenes
+  const [indexImagen, setIndexImagen] = useState(0); // Estado para almacenar el índice de la imagen seleccionada en la galería
+  const [favoritos, setFavoritos] = useState<string[]>([]); // Estado para almacenar los IDs de las actividades que el usuario ha marcado como favoritas
+  const [likesPorActividad, setLikesPorActividad] = useState<Record<string, number>>({}); // Estado para almacenar el número de likes por actividad
+  const [modalColecciones, setModalColecciones] = useState(false); // Estado para controlar la apertura del modal de colecciones
 
+  // Obtener información del usuario actual y verificar si es superAdmin
   const { user, isSuperAdmin } = useUser();
 
+  // Función para cargar los comentarios de la actividad desde la API
   const cargarComentarios = async () => {
     setLoading(true);
     try {
@@ -40,7 +43,7 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
       const res = await fetch("/api/colecciones/favoritos");
       if (!res.ok) return;
       const data = await res.json();
-      const favIds = data.map((f: { actividad_id: string }) => f.actividad_id);
+      const favIds = data.map((f: { actividad_id: string }) => f.actividad_id); // Extraemos los IDs de las actividades favoritas del usuario
       setFavoritos(favIds);
     } catch (err) {
       console.error("Error al cargar favoritos", err);
@@ -56,19 +59,20 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
       setLikesPorActividad((prev) => ({
         ...prev,
         [actividad.id]: data.count || 0,
-      }));
+      })); // Guardamos el número de likes de la actividad en el estado, manteniendo los likes de otras actividades si existen
     } catch (err) {
       console.error("Error al cargar likes:", err);
     }
   };
 
+  // Efecto para cargar comentarios y likes cuando cambia la actividad
   useEffect(() => {
-    if (actividad?.id) {
+    if (actividad?.id) { // Verificamos que la actividad tenga un ID antes de cargar los comentarios y likes
       cargarComentarios();
       cargarLikesCount();
     }
-    cargarFavoritos();
-  }, [actividad.id]);
+    cargarFavoritos(); // Cargamos los favoritos del usuario al montar el componente
+  }, [actividad.id]); // Dependencia: se ejecuta cuando cambia el ID de la actividad
 
   // Bloquear scroll de fondo mientras el modal está abierto
   useEffect(() => {
@@ -80,22 +84,21 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
 
   // Toggles like - Optimistic Update
   const toggleLike = (actividadId: string) => {
-    // Guardar estado anterior en caso de necesitar revertir
-    const estadoAnterior = favoritos;
-    const likesAnteriores = likesPorActividad[actividadId] || 0;
-    const isFav = favoritos.includes(actividadId);
+    const estadoAnterior = favoritos; // Guardamos el estado anterior de favoritos para poder revertirlo si ocurre un error en la petición
+    const likesAnteriores = likesPorActividad[actividadId] || 0; // Obtenemos el número de likes anterior para esta actividad, si no existe, asumimos 0
+    const isFav = favoritos.includes(actividadId); // Verificamos si la actividad ya está en favoritos
 
     // Actualizar estado INMEDIATAMENTE (optimistic update)
     setFavoritos((prev) =>
-      prev.includes(actividadId)
-        ? prev.filter((id) => id !== actividadId)
+      prev.includes(actividadId) // Si la actividad ya está en favoritos, la removemos del array, de lo contrario la agregamos
+        ? prev.filter((id) => id !== actividadId) 
         : [...prev, actividadId]
     );
 
     // Actualizar contador de likes instantáneamente
     setLikesPorActividad((prev) => ({
       ...prev,
-      [actividadId]: isFav ? likesAnteriores - 1 : likesAnteriores + 1,
+      [actividadId]: isFav ? likesAnteriores - 1 : likesAnteriores + 1, // Si estaba en favoritos, decrementamos el contador, de lo contrario lo incrementamos
     }));
 
     // Mostrar toast inmediatamente
@@ -123,6 +126,7 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
     );
   }
 
+  // Función para eliminar un comentario, solo si el usuario es el autor o tiene rol de admin/superAdmin
   const handleEliminar = async (comentarioId: string) => {
     try {
       const res = await fetch(`/api/comunidad/comentarios/${comentarioId}`, {
@@ -131,7 +135,7 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
       if (res.ok) {
         toast.success("Comentario eliminado");
         await cargarComentarios();
-        if (onActualizarComentarios) onActualizarComentarios();
+        if (onActualizarComentarios) onActualizarComentarios(); // Llamamos al callback para notificar al componente padre que los comentarios han sido actualizados
       } else {
         toast.error("No se pudo eliminar el comentario");
       }
@@ -141,6 +145,7 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
     }
   };
 
+  // Función para verificar si el usuario puede eliminar un comentario
   const puedeEliminar = (comentario: any) => {
     if (!user) return false;
     return (
@@ -150,16 +155,17 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
     );
   };
 
+  // Filtrar imágenes y otros archivos de la actividad para mostrarlos en la galería y en la sección de descargas
   const imagenesAct = actividad.actividad_archivos?.filter((a: any) =>
-    a.tipo.startsWith("image/")
+    a.tipo.startsWith("image/") // Filtramos solo los archivos que son imágenes para mostrarlos en la galería
   );
   const otrosArchivos = actividad.actividad_archivos?.filter(
-    (a: any) => !a.tipo.startsWith("image/")
+    (a: any) => !a.tipo.startsWith("image/") // Filtramos los archivos que no son imágenes para mostrarlos en la sección de descargas
   );
   const categorias = actividad.actividad_categoria?.map(
-    (c: any) => c.categoria.nombre
+    (c: any) => c.categoria.nombre // Obtenemos los nombres de las categorías asociadas a la actividad para mostrarlas en la cabecera del modal
   );
-  const isFav = favoritos.includes(actividad.id);
+  const isFav = favoritos.includes(actividad.id); // Verificamos si la actividad actual está en favoritos del usuario para mostrar el estado correcto del botón de like
 
   return (
     <div
@@ -189,14 +195,14 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                 <img
-                  src={actividad.usuario.perfil?.imagen || "/default-profile.png"}
+                  src={actividad.usuario.perfil?.imagen || "/default-profile.png"} // Si el usuario no tiene imagen de perfil, mostramos una imagen por defecto
                   alt="Perfil"
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
               <div>
                 <p className="font-semibold text-gray-800">
-                  {actividad.usuario?.nombre} {actividad.usuario?.apellido}
+                  {actividad.usuario?.nombre} {actividad.usuario?.apellido} 
                 </p>
                 <p className="text-xs text-gray-500">{actividad.fecha}</p>
               </div>
@@ -212,7 +218,7 @@ export default function ComentariosModal({ actividad, onClose, onActualizarComen
                 </span>
               ))}
 
-              <MenuAccionesActividades
+              <MenuAccionesActividades // Componente que muestra un menú de acciones para la actividad, como editar o eliminar, dependiendo del rol del usuario
                 actividad={{ id: actividad.id, usuario_id: actividad.usuario.id }}
                 userId={user?.id ?? ""}
                 rol={user?.rol ?? ""}

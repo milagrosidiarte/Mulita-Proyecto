@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+// Componente para ingresar un nuevo comentario en la actividad
 export default function ComentarioInput({
   actividadId,
   onNuevoComentario,
@@ -10,11 +11,12 @@ export default function ComentarioInput({
   actividadId: string;
   onNuevoComentario?: () => void;
 }) {
-  const [contenido, setContenido] = useState("");
+  const [contenido, setContenido] = useState(""); // Estado para almacenar el contenido del comentario
   const [cargando, setCargando] = useState(false);
 
+  // Función para enviar el comentario al backend
   const handleEnviar = async () => {
-    if (!contenido.trim()) return;
+    if (!contenido.trim()) return; // No enviar comentarios vacíos
     setCargando(true);
     try {
       const res = await fetch("/api/comunidad/comentarios", {
@@ -27,8 +29,8 @@ export default function ComentarioInput({
       });
       if (res.ok) {
         toast.success("Comentario enviado");
-        setContenido("");
-        onNuevoComentario?.();
+        setContenido(""); // Limpiamos el input después de enviar
+        onNuevoComentario?.(); // Llamamos al callback para notificar al componente padre que hay un nuevo comentario
       } else {
         toast.error("Error al agregar comentario");
       }
@@ -40,10 +42,11 @@ export default function ComentarioInput({
     }
   };
 
+  // Función para manejar la tecla Enter y enviar el comentario
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleEnviar();
+      handleEnviar(); // Llamamos a la función de envío cuando se presiona Enter sin Shift
     }
   };
 

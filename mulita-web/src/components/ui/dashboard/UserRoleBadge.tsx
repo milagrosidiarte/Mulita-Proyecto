@@ -6,12 +6,13 @@ import { Shield, Users, Zap, User } from "lucide-react";
 export default function UserRoleBadge() {
   const { user, isLoading } = useUser();
 
+  // Si los datos del usuario aún se están cargando o no hay usuario, no renderizamos nada
   if (isLoading || !user) {
     return null;
   }
 
   // Mapeo de roles a colores, iconos y etiquetas
-  const roleConfig: Record<string, { 
+  const roleConfig: Record<string, {
     color: string; 
     bgColor: string; 
     label: string; 
@@ -48,6 +49,7 @@ export default function UserRoleBadge() {
     }
   };
 
+  // Obtenemos la configuración del rol del usuario, o usamos la configuración por defecto si el rol no está definido
   const config = roleConfig[user.rol] || roleConfig.usuario;
 
   return (

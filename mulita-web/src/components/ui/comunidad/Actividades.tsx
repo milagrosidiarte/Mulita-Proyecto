@@ -11,6 +11,7 @@ import ModalColecciones from "@/components/ui/comunidad/ModalColecciones";
 import { useUser } from "@/hooks/queries";
 import SkeletonActividades from "./skeletons/SkeletonActividades";
 
+// Tipos de datos para las actividades y sus relaciones
 type Archivo = { archivo_url: string; tipo: string; nombre: string };
 type Categoria = { categoria: { nombre: string } };
 type Perfil = { imagen?: string };
@@ -26,43 +27,46 @@ type Actividad = {
   actividad_categoria: Categoria[];
 };
 
+// Componente principal que muestra la lista de actividades, 
+// permite filtrar, buscar, dar like, comentar y ver detalles de cada actividad
 export default function Actividades() {
   const { user } = useUser();
 
-  const [actividades, setActividades] = useState<Actividad[]>([]);
-  const [favoritos, setFavoritos] = useState<string[]>([]);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [loadingInicial, setLoadingInicial] = useState(false);
-  const [loadingVerMas, setLoadingVerMas] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [actividades, setActividades] = useState<Actividad[]>([]); // Estado para almacenar la lista de actividades
+  const [favoritos, setFavoritos] = useState<string[]>([]); // Estado para almacenar los IDs de las actividades favoritas del usuario
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({}); // Estado para controlar qué descripciones de actividades están expandidas
+  const [loadingInicial, setLoadingInicial] = useState(false); // Estado para controlar la carga inicial de actividades
+  const [loadingVerMas, setLoadingVerMas] = useState(true); // Estado para controlar la carga de más actividades al hacer scroll o click en "Ver más"
+  const [error, setError] = useState<string | null>(null); // Estado para almacenar cualquier error que ocurra durante la carga de actividades
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [imagenes, setImagenes] = useState<Archivo[]>([]);
+  const [modalOpen, setModalOpen] = useState(false); // Estado para controlar la apertura del modal de imágenes
+  const [currentIndex, setCurrentIndex] = useState(0); // Estado para almacenar el índice de la imagen actualmente mostrada en el modal
+  const [imagenes, setImagenes] = useState<Archivo[]>([]); // Estado para almacenar las imágenes de la actividad que se mostrarán en el modal
 
-  const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | null>(null);
-  const [modalColeccionesOpen, setModalColeccionesOpen] = useState(false);
-  const [actividadParaColeccion, setActividadParaColeccion] = useState<string | null>(null);
+  const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | null>(null); // Estado para almacenar la actividad seleccionada para ver comentarios
+  const [modalColeccionesOpen, setModalColeccionesOpen] = useState(false); // Estado para controlar la apertura del modal de colecciones
+  const [actividadParaColeccion, setActividadParaColeccion] = useState<string | null>(null); // Estado para almacenar el ID de la actividad que se quiere agregar a una colección
 
-  const [comentariosPorActividad, setComentariosPorActividad] = useState<Record<string, number>>({});
-  const [likesPorActividad, setLikesPorActividad] = useState<Record<string, number>>({});
-  const [ultimoComentario, setUltimoComentario] = useState<Record<string, any>>({});
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const limit = 5;
+  const [comentariosPorActividad, setComentariosPorActividad] = useState<Record<string, number>>({}); // Estado para almacenar la cantidad de comentarios por actividad
+  const [likesPorActividad, setLikesPorActividad] = useState<Record<string, number>>({}); // Estado para almacenar la cantidad de likes por actividad
+  const [ultimoComentario, setUltimoComentario] = useState<Record<string, any>>({}); // Estado para almacenar el último comentario de cada actividad
+  const [offset, setOffset] = useState(0); // Estado para controlar el offset de la paginación de actividades
+  const [hasMore, setHasMore] = useState(true); // Estado para controlar si hay más actividades para cargar (para paginación)
+  const [search, setSearch] = useState(""); // Estado para almacenar el término de búsqueda ingresado por el usuario
+  const [debouncedSearch, setDebouncedSearch] = useState(""); // Estado para almacenar el término de búsqueda con debounce, para evitar hacer demasiadas solicitudes al backend mientras el usuario escribe
+  const limit = 5; // Número máximo de actividades a cargar por solicitud al backend
 
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const [categoriasSeleccionadas, setCategoriasSeleccionadas] = useState<string[]>([]);
-  const [fechaSeleccionada, setFechaSeleccionada] = useState<string>("");
+  const [showScrollButton, setShowScrollButton] = useState(false); // Estado para controlar la visibilidad del botón de "scroll to top"
+  const [categoriasSeleccionadas, setCategoriasSeleccionadas] = useState<string[]>([]); // Estado para almacenar las categorías seleccionadas por el usuario para filtrar las actividades
+  const [fechaSeleccionada, setFechaSeleccionada] = useState<string>(""); // Estado para almacenar la fecha seleccionada por el usuario para filtrar las actividades
 
   // Debounce búsqueda
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(search), 500);
+    const handler = setTimeout(() => setDebouncedSearch(search), 500); // Esperamos 500ms después de que el usuario deje de escribir para actualizar el término de búsqueda
     return () => clearTimeout(handler);
-  }, [search]);
+  }, [search]); // Se ejecuta cada vez que cambia el estado de "search"
 
+  // Funciones para obtener la cantidad de comentarios y likes de cada actividad desde el backend
   const fetchComentariosCount = async (actividadId: string) => {
     try {
       const res = await fetch(`/api/comunidad/comentarios/${actividadId}`);
@@ -75,6 +79,7 @@ export default function Actividades() {
     }
   };
 
+  // Función para obtener la cantidad de likes de cada actividad desde el backend
   const fetchLikesCount = async (actividadId: string) => {
     try {
       const res = await fetch(`/api/comunidad/actividades/${actividadId}/likes`);
@@ -87,6 +92,7 @@ export default function Actividades() {
     }
   };
 
+  // Función para obtener el último comentario de cada actividad desde el backend
   const fetchUltimoComentario = async (actividadId: string) => {
     try {
       const res = await fetch(`/api/comunidad/comentarios/${actividadId}`);
@@ -95,7 +101,7 @@ export default function Actividades() {
       if (data.length > 0) {
         setUltimoComentario((prev) => ({
           ...prev,
-          [actividadId]: data[data.length - 1],
+          [actividadId]: data[data.length - 1], // Guardamos el último comentario en el estado, usando el ID de la actividad como clave
         }));
       }
     } catch (err) {
@@ -103,18 +109,22 @@ export default function Actividades() {
     }
   };
 
+  // Funciones para actualizar los contadores de comentarios y likes en el estado local, sin necesidad de hacer un fetch al backend
   const actualizarComentarios = (actividadId: string, nuevoCount: number) => {
-    setComentariosPorActividad((prev) => ({ ...prev, [actividadId]: nuevoCount }));
+    setComentariosPorActividad((prev) => ({ ...prev, [actividadId]: nuevoCount })); // Actualizamos el estado de comentarios por actividad, manteniendo los valores anteriores y reemplazando el contador de la actividad específica
   };
 
-  const actualizarLikes = (actividadId: string, nuevoCount: number) => {
+  // Función para actualizar el contador de likes de una actividad en el estado local
+  const actualizarLikes = (actividadId: string, nuevoCount: number) => { // no se usa porque el contador de likes se actualiza directamente en toggleLike
     setLikesPorActividad((prev) => ({ ...prev, [actividadId]: nuevoCount }));
   };
 
+  // Funciones para manejar la eliminación y actualización de actividades en el estado local, sin necesidad de hacer un fetch al backend
   const handleActividadEliminada = (actividadId: string) => {
     setActividades((prev) => prev.filter((act) => act.id !== actividadId));
   };
 
+  // Función para manejar la actualización de una actividad en el estado local, reemplazando los datos antiguos con los nuevos
   const handleActividadActualizada = (actividadId: string, datosActualizados: any) => {
     setActividades((prev) =>
       prev.map((act) =>
@@ -127,7 +137,7 @@ export default function Actividades() {
 
   // Fetch actividades
   const fetchActividades = useCallback(
-    async (newOffset = 0, searchTerm = "", categorias: string[] = [], fecha = "") => {
+    async (newOffset = 0, searchTerm = "", categorias: string[] = [], fecha = "") => { // Función para obtener las actividades desde el backend, con soporte para paginación, búsqueda y filtros
       try {
         if (newOffset === 0) {
           setLoadingInicial(true);
@@ -135,37 +145,45 @@ export default function Actividades() {
           setLoadingVerMas(true);
         }
 
-        let url = `/api/comunidad/actividades?offset=${newOffset}&limit=${limit}&search=${encodeURIComponent(searchTerm)}`;
+        let url = `/api/comunidad/actividades?offset=${newOffset}&limit=${limit}&search=${encodeURIComponent(searchTerm)}`; // Construimos la URL para la solicitud al backend, incluyendo el offset, limit y término de búsqueda
         if (categorias.length > 0) {
           categorias.forEach(cat => {
-            url += `&categoria=${encodeURIComponent(cat)}`;
+            url += `&categoria=${encodeURIComponent(cat)}`; // Agregamos cada categoría seleccionada como un parámetro de consulta en la URL, codificando los valores para evitar problemas con caracteres especiales
           });
         }
-        if (fecha) url += `&fecha=${encodeURIComponent(fecha)}`;
+        if (fecha) url += `&fecha=${encodeURIComponent(fecha)}`; // Agregamos la fecha seleccionada como un parámetro de consulta en la URL, codificando el valor para evitar problemas con caracteres especiales
 
-        const res = await fetch(url);
+        // Solicitud al backend
+        const res = await fetch(url); // Hacemos la solicitud al backend para obtener las actividades, usando la URL construida con los parámetros de búsqueda y filtros
         if (!res.ok) throw new Error("Error al obtener las actividades");
-        const data: Actividad[] = await res.json();
+        const data: Actividad[] = await res.json(); // Parseamos la respuesta JSON y la convertimos en un array de actividades
 
+        // Si el offset es 0, significa que estamos cargando la primera página de actividades, por lo que reemplazamos el estado de actividades con los datos obtenidos. 
+        // Si el offset es mayor a 0, significa que estamos cargando más actividades, por lo que concatenamos los nuevos datos al estado existente.
         if (newOffset === 0) setActividades(data);
         else setActividades((prev) => [...prev, ...data]);
 
+        // Verificamos si hay más actividades para cargar comparando la cantidad de datos obtenidos con el límite establecido. 
+        // Si la cantidad de datos es menor al límite, significa que no hay más actividades para cargar.
         setHasMore(data.length === limit);
 
+        // Obtenemos los contadores de comentarios y likes para cada actividad obtenida, y actualizamos el estado local con estos valores.
         const counts: Record<string, number> = {};
         const likeCounts: Record<string, number> = {};
         await Promise.all(
-          data.map(async (act) => {
+          data.map(async (act) => { // Iteramos sobre cada actividad obtenida y hacemos un fetch para obtener la cantidad de comentarios y likes, así como el último comentario de cada actividad.
             counts[act.id] = await fetchComentariosCount(act.id);
             likeCounts[act.id] = await fetchLikesCount(act.id);
             await fetchUltimoComentario(act.id);
           })
         );
-        setComentariosPorActividad((prev) => ({ ...prev, ...counts }));
-        setLikesPorActividad((prev) => ({ ...prev, ...likeCounts }));
+        setComentariosPorActividad((prev) => ({ ...prev, ...counts })); // Actualizamos el estado de comentarios por actividad con los nuevos valores obtenidos desde el backend, 
+        // manteniendo los valores anteriores y reemplazando los contadores de las actividades específicas.
+        setLikesPorActividad((prev) => ({ ...prev, ...likeCounts })); // Actualizamos el estado de likes por actividad con los nuevos valores obtenidos desde el backend, 
+        // manteniendo los valores anteriores y reemplazando los contadores de las actividades específicas.
       } catch (err: any) {
         setError(err.message);
-      } finally {
+      } finally { // Al finalizar la solicitud, ya sea exitosa o con error, actualizamos los estados de carga para indicar que la operación ha terminado.
         setLoadingInicial(false);
         setLoadingVerMas(false);
       }
@@ -187,22 +205,24 @@ export default function Actividades() {
   }, []);
   
 
+  // Efecto para cargar actividades y favoritos cuando cambian los filtros o la búsqueda
   useEffect(() => {
-    setOffset(0);
-    fetchActividades(0, debouncedSearch, categoriasSeleccionadas, fechaSeleccionada);
-    fetchFavoritos();
-  }, [debouncedSearch, categoriasSeleccionadas, fechaSeleccionada, fetchActividades, fetchFavoritos]);
+    setOffset(0); // Reseteamos el offset a 0 para cargar la primera página de actividades cuando cambian los filtros o la búsqueda
+    fetchActividades(0, debouncedSearch, categoriasSeleccionadas, fechaSeleccionada); // Cargamos las actividades con los filtros y búsqueda actuales
+    fetchFavoritos(); // Cargamos las actividades favoritas del usuario
+  }, [debouncedSearch, categoriasSeleccionadas, fechaSeleccionada, fetchActividades, fetchFavoritos]); // Se ejecuta cada vez que cambian los filtros o la búsqueda, o cuando se actualizan las funciones de fetchActividades o fetchFavoritos
 
   // Verificar si hay una actividad actualizada desde la página de editar
   useEffect(() => {
-    const actividadActualizada = sessionStorage.getItem("actividadActualizada");
-    if (actividadActualizada) {
+    const actividadActualizada = sessionStorage.getItem("actividadActualizada"); // Verificamos si hay una actividad actualizada almacenada en sessionStorage, lo que indica que el usuario ha editado una actividad y queremos reflejar esos cambios en la lista de actividades.
+    if (actividadActualizada) { // Si encontramos una actividad actualizada, la parseamos desde JSON y llamamos a la función handleActividadActualizada para actualizar el estado de actividades con los nuevos datos.
       const datos = JSON.parse(actividadActualizada);
       handleActividadActualizada(datos.id, datos);
-      sessionStorage.removeItem("actividadActualizada");
+      sessionStorage.removeItem("actividadActualizada"); // Luego de actualizar el estado, eliminamos la actividad actualizada de sessionStorage para evitar que se vuelva a procesar en futuros renders.
     }
   }, []);
 
+  // Función para manejar el evento de "Ver más" y cargar más actividades desde el backend, incrementando el offset y llamando a fetchActividades con los filtros y búsqueda actuales
   const handleVerMas = () => {
     const newOffset = offset + limit;
     setOffset(newOffset);
@@ -254,26 +274,31 @@ export default function Actividades() {
       });
   };
 
+  // Funciones para manejar la expansión de la descripción de las actividades y la apertura del modal de imágenes
   const toggleExpand = (id: string) => {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Función para abrir el modal de imágenes, estableciendo las imágenes y el índice actual
   const toggleModal = (imagenes: Archivo[], index: number) => {
     setImagenes(imagenes);
     setCurrentIndex(index);
     setModalOpen(true);
   };
 
+  // Efecto para mostrar el botón de "scroll to top" cuando el usuario hace scroll hacia abajo más de 300px
   useEffect(() => {
     const handleScroll = () => setShowScrollButton(window.scrollY > 300);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Función para hacer scroll hacia arriba suavemente cuando el usuario hace click en el botón de "scroll to top"
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Renderizado condicional basado en el estado de carga, errores y autenticación del usuario
   if (loadingInicial && actividades.length === 0)
     return <SkeletonActividades />;
 
@@ -344,7 +369,7 @@ export default function Actividades() {
             No hay actividades disponibles.
           </div>
         ) : (
-          actividades.map((act) => {
+          actividades.map((act) => { // Iteramos sobre cada actividad obtenida y renderizamos su contenido, incluyendo cabecera, título, descripción, archivos, galería de imágenes y botones de interacción
             const imagenesAct = act.actividad_archivos.filter((a) => a.tipo.startsWith("image/"));
             const otrosArchivos = act.actividad_archivos.filter((a) => !a.tipo.startsWith("image/"));
             const categorias = act.actividad_categoria?.map((c) => c.categoria.nombre);

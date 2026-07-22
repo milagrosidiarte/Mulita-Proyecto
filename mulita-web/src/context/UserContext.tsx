@@ -55,7 +55,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) { // c
   };
 
   // Sincronizar sesión de Supabase con el estado del usuario
-  const syncSupabaseSession = async () => {
+  const syncSupabaseSession = async () => { // no se usa porque fetchUser() ya hace lo mismo, pero sirve para entender la lógica de sincronización.
     try {
       const supabase = createClientSupabase();
       const { data: { session } } = await supabase.auth.getSession();

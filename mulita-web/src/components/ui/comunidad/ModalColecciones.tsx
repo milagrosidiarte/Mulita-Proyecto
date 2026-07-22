@@ -15,14 +15,16 @@ type Coleccion = {
   nombre: string;
 };
 
+// ModalColecciones es un componente que muestra un modal para agregar o quitar una actividad de las colecciones del usuario. 
+// Permite ver las colecciones existentes, seleccionar o deseleccionar la actividad en ellas, y crear nuevas colecciones.
 export default function ModalColecciones({
   isOpen,
   actividadId,
   onClose,
 }: ModalColeccionesProps) {
-  const [colecciones, setColecciones] = useState<Coleccion[]>([]);
-  const [seleccionadas, setSeleccionadas] = useState<string[]>([]);
-  const [nuevaColeccion, setNuevaColeccion] = useState("");
+  const [colecciones, setColecciones] = useState<Coleccion[]>([]); // Estado para almacenar las colecciones del usuario
+  const [seleccionadas, setSeleccionadas] = useState<string[]>([]); // Estado para almacenar los IDs de las colecciones donde la actividad ya está agregada
+  const [nuevaColeccion, setNuevaColeccion] = useState(""); // Estado para almacenar el nombre de la nueva colección que el usuario quiere crear
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,8 +41,8 @@ export default function ModalColecciones({
         // Traer todas las colecciones del usuario
         const resColecciones = await fetch("/api/colecciones");
         if (!resColecciones.ok) throw new Error("Error al obtener colecciones");
-        const coleccionesData = await resColecciones.json();
-        setColecciones(coleccionesData);
+        const coleccionesData = await resColecciones.json(); // Guardamos las colecciones obtenidas en el estado
+        setColecciones(coleccionesData); 
 
         // Traer colecciones donde ya está esta actividad
         const resActividad = await fetch(
@@ -51,7 +53,7 @@ export default function ModalColecciones({
         const coleccionesActividad = await resActividad.json();
 
         // Marcar las existentes
-        setSeleccionadas(coleccionesActividad);
+        setSeleccionadas(coleccionesActividad); // Guardamos los IDs de las colecciones donde la actividad ya está agregada
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -60,11 +62,11 @@ export default function ModalColecciones({
     };
 
     fetchData();
-  }, [isOpen, actividadId]);
+  }, [isOpen, actividadId]); // Dependencias: se ejecuta cuando el modal se abre o cambia la actividad
 
   // Alternar selección (agrega o quita actividad de la colección)
   const toggleSeleccion = async (id: string) => {
-    const yaSeleccionada = seleccionadas.includes(id);
+    const yaSeleccionada = seleccionadas.includes(id); // Verificamos si la colección ya está seleccionada
     setLoading(true);
     try {
       if (yaSeleccionada) {
@@ -95,13 +97,13 @@ export default function ModalColecciones({
       toast.error(err.message || "Error al actualizar colección");
       setError(err.message);
     } finally {
-      setLoading(false);
+      setLoading(false); // para que no se quede el modal en estado de carga
     }
   };
 
   // Crear nueva colección y asociar la actividad
   const handleCrearColeccion = async () => {
-    if (!nuevaColeccion.trim()) return;
+    if (!nuevaColeccion.trim()) return; // Validación: no permitir nombres vacíos
     setLoading(true);
     try {
       // Crear la colección
@@ -119,7 +121,7 @@ export default function ModalColecciones({
       const resAsociar = await fetch(`/api/colecciones/${nueva.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actividadIds: [actividadId] }),
+        body: JSON.stringify({ actividadIds: [actividadId] }), // Enviamos el ID de la actividad para asociarla a la nueva colección
       });
 
       if (!resAsociar.ok)
@@ -127,8 +129,8 @@ export default function ModalColecciones({
 
       // Actualizar estado local
       toast.success("Colección creada y actividad agregada");
-      setSeleccionadas((prev) => [...prev, nueva.id]);
-      setNuevaColeccion("");
+      setSeleccionadas((prev) => [...prev, nueva.id]); // Agregamos la nueva colección a las seleccionadas
+      setNuevaColeccion(""); // Limpiamos el input de nueva colección
       setCreating(false);
     } catch (err: any) {
       toast.error(err.message || "Error al crear colección");
@@ -174,7 +176,7 @@ export default function ModalColecciones({
                 <li
                   key={col.id}
                   className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => toggleSeleccion(col.id)}
+                  onClick={() => toggleSeleccion(col.id)} // Al hacer clic en una colección, se alterna su selección (agregar o quitar la actividad)
                 >
                   <span className="text-gray-800">{col.nombre}</span>
                   <input

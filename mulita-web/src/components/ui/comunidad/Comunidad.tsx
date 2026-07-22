@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/queries";
 import toast from "react-hot-toast";
-import { SidebarComunidad } from "@/components/ui/comunidad/SidebarComunidad";
+import { SidebarComunidad } from "@/components/ui/comunidad/SidebarComunidad"; // Importamos el componente SidebarComunidad que representa la barra lateral de la sección de comunidad
 import Actividades from "./Actividades"
 
 export default function Comunidad() {
@@ -13,6 +13,7 @@ export default function Comunidad() {
   const router = useRouter();
   const hasRedirected = useRef(false);
 
+  // Efecto para redirigir al usuario a la página de login si no está autenticado
   useEffect(() => {
     if (!isLoading && !user && !hasRedirected.current) {
       hasRedirected.current = true;

@@ -8,17 +8,18 @@ type ImagenModalProps = {
   onClose: () => void;
 };
 
+// ModalImagenActividades es un componente que muestra un modal con una imagen y permite navegar entre varias imágenes.
 export default function ModalImagenActividades({
   images,
   initialIndex,
   onClose,
-}: ImagenModalProps) {
+}: ImagenModalProps) { // Recibimos las imágenes, el índice inicial y la función para cerrar el modal
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const nextImage = () =>
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    setCurrentIndex((prev) => (prev + 1) % images.length); // Avanzamos al siguiente índice, y si llegamos al final, volvemos al inicio
   const prevImage = () =>
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); // Retrocedemos al índice anterior, y si llegamos al inicio, vamos al final
 
   return (
     <div

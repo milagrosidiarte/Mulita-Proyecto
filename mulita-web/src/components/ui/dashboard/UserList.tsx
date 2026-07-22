@@ -15,9 +15,10 @@ interface Usuario {
 
 interface Props {
   usuarios: Usuario[];
-  onUpdate: () => void;
+  onUpdate: () => void; // callback para refrescar la lista de usuarios después de una acción (editar/eliminar/etc)
 }
 
+// Componente que renderiza la lista de usuarios en tarjetas
 export default function UserList({ usuarios, onUpdate }: Props) {
   if (!usuarios?.length) {
     return <p className="text-gray-500">No se encontraron usuarios.</p>;
@@ -37,6 +38,7 @@ export default function UserList({ usuarios, onUpdate }: Props) {
               </h3>
               <p className="text-sm text-gray-600 mt-1">{u.email}</p>
             </div>
+            {/* onUpdate se pasa tal cual al menú, así cualquier acción ahí dispara el refetch en el padre */}
             <div className="ml-4">
               <MenuAccionesUsuarios user={u} onUpdate={onUpdate} />
             </div>

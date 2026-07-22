@@ -8,8 +8,8 @@ export default function MenuAccionesNoticias({
   noticiaId: number;
   onEliminar: (id: number) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState(false); // Estado para controlar si el menú está abierto o cerrado
+  const menuRef = useRef<HTMLDivElement | null>(null); // Referencia al contenedor del menú para detectar clicks fuera de él
 
   // Cerrar si hago click afuera
   useEffect(() => {

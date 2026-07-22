@@ -13,18 +13,20 @@ interface Usuario {
 interface Props {
   user: Usuario;
   onClose: () => void;
-  onUpdated: () => void;
+  onUpdated: () => void; // dispara el refetch en UserList (vía onUpdate que le pasó MenuAccionesUsuarios)
 }
 
+// Componente para editar el rol de un usuario
 export default function EditRoleModal({ user, onClose, onUpdated }: Props) {
-  const [rol, setRol] = useState(user.rol);
+  const [rol, setRol] = useState(user.rol); // Estado local para el rol editable
   const [loading, setLoading] = useState(false);
 
+  // Función para manejar la actualización del rol
   const handleSave = async () => {
     setLoading(true);
     const res = await fetch(`/api/usuarios/${user.id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "applicatiPOWEon/json" },
       body: JSON.stringify({ rol }),
     });
     setLoading(false);

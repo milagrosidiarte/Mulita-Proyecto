@@ -13,19 +13,21 @@ interface Usuario {
 interface Props {
   user: Usuario;
   onClose: () => void;
-  onUpdated: () => void;
+  onUpdated: () => void; // Callback para refrescar la lista de usuarios después de actualizar los permisos
 }
 
+// Componente para editar los permisos de un usuario
 export default function EditPermissionsModal({ user, onClose, onUpdated }: Props) {
-  const [permiso, setPermiso] = useState(user.acceso_comunidad);
+  const [permiso, setPermiso] = useState(user.acceso_comunidad); // Estado local para manejar el permiso del usuario
   const [loading, setLoading] = useState(false);
 
+  // Función para manejar la actualización de permisos
   const handleSave = async () => {
     setLoading(true);
     const res = await fetch(`/api/usuarios/${user.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ acceso_comunidad: permiso }),
+      body: JSON.stringify({ acceso_comunidad: permiso }), // Enviar el nuevo estado del permiso al backend
     });
     setLoading(false);
 

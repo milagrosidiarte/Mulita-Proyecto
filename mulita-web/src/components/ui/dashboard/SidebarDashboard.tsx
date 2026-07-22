@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname } from "next/navigation"; // pathname sirve para saber en qué ruta estamos actualmente y así poder marcar el link activo
 
 export default function SidebarDashboard({
   isOpen,
@@ -11,9 +11,9 @@ export default function SidebarDashboard({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname(); // Obtiene la ruta actual para determinar qué link está activo
 
-  const handleLinkClick = () => {
+  const handleLinkClick = () => { // Cierra el sidebar al hacer clic en un link (solo en mobile)
     onClose();
   };
 
@@ -23,28 +23,28 @@ export default function SidebarDashboard({
       label: "Landing",
       icon: "/images/icons/dashboard/landing.svg",
       iconActive: "/images/icons/dashboard/landing.svg",
-      isActive: () => pathname === "/",
+      isActive: () => pathname === "/", // Marca como activo solo si la ruta es exactamente /
     },
     {
       href: "/dashboard",
       label: "Dashboard",
       icon: "/images/icons/dashboard/dashboard.svg",
       iconActive: "/images/icons/dashboard/dashboard azul.svg",
-      isActive: () => pathname === "/dashboard",
+      isActive: () => pathname === "/dashboard", // Marca como activo solo si la ruta es exactamente /dashboard
     },
     {
       href: "/dashboard/gestionLanding",
       label: "Gestión de Landing",
       icon: "/images/icons/dashboard/gestion landing.svg",
       iconActive: "/images/icons/dashboard/gestion landing azul.svg",
-      isActive: () => pathname.startsWith("/dashboard/gestionLanding"),
+      isActive: () => pathname.startsWith("/dashboard/gestionLanding"), // Marca como activo si la ruta comienza con /dashboard/gestionLanding
     },
     {
       href: "/dashboard/gestionUsuarios",
       label: "Usuarios",
       icon: "/images/icons/dashboard/usuarios.svg",
       iconActive: "/images/icons/dashboard/usuarios azul.svg",
-      isActive: () => pathname === "/dashboard/gestionUsuarios",
+      isActive: () => pathname === "/dashboard/gestionUsuarios", // Marca como activo solo si la ruta es exactamente /dashboard/gestionUsuarios
     },
     // {
     //   href: "/dashboard/configuracion",

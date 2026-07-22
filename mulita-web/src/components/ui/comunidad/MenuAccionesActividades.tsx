@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ModalColecciones from "./ModalColecciones";
 
+// MenuAccionesActividades es un componente que muestra un menú de acciones para una actividad en la comunidad.
+// Dependiendo del rol del usuario y si es el autor de la actividad, se muestran diferentes opciones como ver perfil, agregar a colección, editar o eliminar.
 type Actividad = {
   id: string;
   usuario_id: string;
@@ -16,20 +18,21 @@ type AccionesMenuProps = {
   actividad: Actividad;
   userId: string;
   rol: string;
-  onActividadEliminada?: (actividadId: string) => void;
+  onActividadEliminada?: (actividadId: string) => void; // Callback opcional que se llama cuando la actividad es eliminada, para actualizar la vista del padre
 };
 
+// MenuAccionesActividades es un componente que muestra un menú de acciones para una actividad en la comunidad.
 export default function MenuAccionesActividades({ actividad, userId, rol, onActividadEliminada }: AccionesMenuProps) {
   const [open, setOpen] = useState(false);
-  const [modalColeccionesOpen, setModalColeccionesOpen] = useState(false);
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [modalColeccionesOpen, setModalColeccionesOpen] = useState(false); // Estado para controlar la apertura del modal de colecciones
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false); // Estado para controlar la apertura del diálogo de confirmación de eliminación
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const esAutor = actividad.usuario_id === userId;
-  const esAdmin = rol === "admin" || rol === "superAdmin";
+  const esAutor = actividad.usuario_id === userId; // Verificamos si el usuario actual es el autor de la actividad
+  const esAdmin = rol === "admin" || rol === "superAdmin"; // Verificamos si el usuario tiene rol de admin o superAdmin
 
-  const toggleMenu = () => setOpen((prev) => !prev);
+  const toggleMenu = () => setOpen((prev) => !prev); // Función para alternar la apertura del menú de acciones
 
   // Cerrar menú al hacer clic afuera
   useEffect(() => {
@@ -42,6 +45,7 @@ export default function MenuAccionesActividades({ actividad, userId, rol, onActi
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Función para manejar la eliminación de la actividad
   const handleEliminar = async () => {
     try {
       const res = await fetch(`/api/comunidad/actividades/${actividad.id}`, {
@@ -59,7 +63,7 @@ export default function MenuAccionesActividades({ actividad, userId, rol, onActi
       
       // Llamar al callback si existe para eliminar de la vista al instante
       if (onActividadEliminada) {
-        onActividadEliminada(actividad.id);
+        onActividadEliminada(actividad.id); // Llamamos al callback para notificar al componente padre que la actividad fue eliminada
       } else {
         // Si no hay callback, redirigir a comunidad
         router.push("/comunidad");
@@ -70,9 +74,10 @@ export default function MenuAccionesActividades({ actividad, userId, rol, onActi
     }
   };
 
+  // Función para abrir el modal de colecciones
   const handleAbrirModalColecciones = () => {
-    setOpen(false);
-    setModalColeccionesOpen(true);
+    setOpen(false); // Cerramos el menú antes de abrir el modal 
+    setModalColeccionesOpen(true); // Abrimos el modal de colecciones
   };
 
   return (
@@ -150,9 +155,9 @@ export default function MenuAccionesActividades({ actividad, userId, rol, onActi
       {/* Modal Colecciones */}
       {modalColeccionesOpen && (
         <ModalColecciones
-          isOpen={modalColeccionesOpen}
-          onClose={() => setModalColeccionesOpen(false)}
-          actividadId={actividad.id}
+          isOpen={modalColeccionesOpen} 
+          onClose={() => setModalColeccionesOpen(false)} // Cerramos el modal al hacer clic en cerrar
+          actividadId={actividad.id} // Pasamos el ID de la actividad al modal para que pueda agregarla a una colección
         />
       )}
     </>

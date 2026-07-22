@@ -5,24 +5,28 @@ import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/hooks/queries";
 
+// SidebarComunidad es un componente que representa la barra lateral de la sección de comunidad. 
+// Contiene enlaces a diferentes secciones como Foro, Crear, Colecciones y Favoritos. 
+// La barra lateral se puede abrir y cerrar, y se adapta a dispositivos móviles mostrando un overlay cuando está abierta. 
+// Además, resalta el enlace activo según la ruta actual y los parámetros de búsqueda.
 export function SidebarComunidad({
-  isOpen,
-  onClose,
+  isOpen, // Indica si la barra lateral está abierta o cerrada
+  onClose, // Función que se llama para cerrar la barra lateral
 }: {
   isOpen: boolean;
   onClose: () => void;
 }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // Hook para obtener los parámetros de búsqueda de la URL
   const { user } = useUser();
 
-  const handleLinkClick = () => {
+  const handleLinkClick = () => { // Cuando se hace clic en un enlace, cerramos la barra lateral
     onClose();
   };
 
   // Si no hay usuario logueado, podemos poner un fallback
-  const userId = user?.id || "";
-
+  const userId = user?.id || ""; // Obtenemos el ID del usuario logueado, si existe
+ 
   const links = [
     {
       href: "/comunidad",
