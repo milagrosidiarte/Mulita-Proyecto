@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 
+// GET: Devuelve estadísticas del dashboard
 export async function GET(req: NextRequest) {
   try {
     // Obtener fecha hace 30 días

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// GET: Devuelve todos los comentarios de una actividad específica
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const access_token = req.cookies.get("sb-access-token")?.value;
     if (!access_token)
@@ -74,6 +75,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   }
 }
 
+// DELETE: Elimina un comentario específico (soft delete)
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const access_token = req.cookies.get("sb-access-token")?.value;
   if (!access_token)

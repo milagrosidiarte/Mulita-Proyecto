@@ -5,22 +5,24 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type ConfirmStatus = "loading" | "success" | "error";
+type ConfirmStatus = "loading" | "success" | "error"; // Estado de la confirmación del usuario
 
+// Componente de confirmación de cuenta
 export default function ConfirmPage() {
-  const [status, setStatus] = useState<ConfirmStatus>("loading");
-  const [message, setMessage] = useState("Verificando tu cuenta...");
-  const [redirecting, setRedirecting] = useState(false);
+  const [status, setStatus] = useState<ConfirmStatus>("loading"); // Estado inicial de la confirmación
+  const [message, setMessage] = useState("Verificando tu cuenta..."); // Mensaje inicial de verificación
+  const [redirecting, setRedirecting] = useState(false); // Estado para manejar la redirección después de la confirmación
   const router = useRouter();
 
   useEffect(() => {
     const confirmUser = async () => {
       try {
         // Revisamos si el usuario está logueado (confirmó el email)
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession(); // Obtenemos la sesión actual del usuario
 
         if (error) throw error;
 
+        // Si no hay sesión o no hay usuario, mostramos un error
         if (!session?.user) {
           setStatus("error");
           setMessage("No se pudo verificar tu cuenta. Por favor, intenta iniciar sesión después de confirmar el email.");
@@ -35,6 +37,7 @@ export default function ConfirmPage() {
           return;
         }
 
+        // Parseamos los datos del usuario pendiente
         const userData = JSON.parse(pending);
 
         // Insertamos en la tabla usuario
@@ -84,7 +87,7 @@ export default function ConfirmPage() {
       }
     };
 
-    confirmUser();
+    confirmUser(); // Llamamos a la función de confirmación al montar el componente
   }, [router]);
 
   return (

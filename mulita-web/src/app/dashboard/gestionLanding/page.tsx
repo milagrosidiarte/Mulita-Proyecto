@@ -45,6 +45,7 @@ export default function GestionLandingPage() {
   );
 }
 
+// Definimos un array de objetos que representan las tarjetas de gestión de las diferentes secciones de la página "Landing"
 const cards = [
   {
     href: "/dashboard/gestionLanding/gestionInicio",

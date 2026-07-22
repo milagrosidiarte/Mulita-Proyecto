@@ -45,6 +45,7 @@ export default function GestionInicioPage() {
   );
 }
 
+// Definimos un array de objetos que representan las tarjetas de gestión, cada una con su ruta, título y descripción
 const cards = [
   {
     href: "/dashboard/gestionLanding/gestionInicio/gestionSecciones",

@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 
 // GET: Devuelve una colección con todas sus actividades, incluyendo usuario y perfil
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+  const params = await props.params; // Obtener el ID de la colección desde los parámetros de la ruta
   const access_token = req.cookies.get("sb-access-token")?.value;
 
   if (!access_token)
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     .from("coleccion")
     .select("*")
     .eq("id", params.id)
-    .eq("eliminado", false)
+    .eq("eliminado", false) // Asegurarse de que la colección no esté marcada como eliminada
     .single();
 
   if (coleccionError) return NextResponse.json({ error: coleccionError.message }, { status: 404 });
@@ -36,8 +36,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
   if (caError) return NextResponse.json({ error: caError.message }, { status: 500 });
 
-  const actividadIds = coleccionActividad.map((c: any) => c.actividad_id);
-  if (actividadIds.length === 0) return NextResponse.json({ ...coleccion, actividades: [] });
+  // Extraer los IDs de las actividades
+  const actividadIds = coleccionActividad.map((c: any) => c.actividad_id); // mapear los IDs de las actividades de la colección
+  if (actividadIds.length === 0) return NextResponse.json({ ...coleccion, actividades: [] }); // Si no hay actividades, devolver la colección con un array vacío
 
   // Traer actividades
   const { data: actividades, error: actError } = await supabase
@@ -54,8 +55,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   if (actError) return NextResponse.json({ error: actError.message }, { status: 500 });
 
   // Traer usuarios y perfiles por separado
-  const usuarioIds = [...new Set(actividades.map((a: any) => a.usuario_id))];
+  const usuarioIds = [...new Set(actividades.map((a: any) => a.usuario_id))]; // Obtener IDs únicos de usuarios de las actividades
 
+  // Traer usuarios y perfiles
   const { data: usuarios, error: usuarioError } = await supabase
     .from("usuario")
     .select("id, nombre, apellido")
@@ -74,9 +76,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
   // Combinar usuarios y perfiles con las actividades
   const actividadesConUsuario = actividades.map((act: any) => {
-    const usuario = usuarios.find((u) => u.id === act.usuario_id) || {};
-    const perfil = perfiles.find((p) => p.id === act.usuario_id) || {};
-    return { ...act, usuario: { ...usuario, perfil } };
+    const usuario = usuarios.find((u) => u.id === act.usuario_id) || {}; // Buscar el usuario correspondiente a la actividad
+    const perfil = perfiles.find((p) => p.id === act.usuario_id) || {}; // Buscar el perfil correspondiente al usuario de la actividad
+    return { ...act, usuario: { ...usuario, perfil } }; // Devolver la actividad con los datos del usuario y perfil correspondientes
   });
 
   return NextResponse.json({ ...coleccion, actividades: actividadesConUsuario });
@@ -108,8 +110,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   }));
 
   const { error } = await supabase
-    .from("coleccion_actividad")
-    .upsert(insertData, { onConflict: "coleccion_id, actividad_id" });
+    .from("coleccion_actividad") // Tabla intermedia
+    .upsert(insertData, { onConflict: "coleccion_id, actividad_id" }); // Evitar duplicados
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ success: true });

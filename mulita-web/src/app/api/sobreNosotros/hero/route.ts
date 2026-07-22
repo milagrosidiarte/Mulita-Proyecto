@@ -62,12 +62,14 @@ export async function PATCH(req: NextRequest) {
     .eq("id", 1)
     .single();
 
+    // Si la imagen enviada es null, mantenemos la imagen actual; de lo contrario, usamos la nueva imagen
   if (imagen === null) {
     imagen_url = heroActual?.imagen;
   } else {
     imagen_url = imagen
   }
 
+  // Upsert: si existe, actualiza; si no, inserta
   const { data, error } = await supabase
     .from("hero_sobre_nosotros")
     .upsert({

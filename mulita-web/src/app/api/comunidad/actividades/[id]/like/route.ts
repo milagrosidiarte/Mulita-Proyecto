@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// POST: Agrega una actividad a la colección Favoritos del usuario autenticado
 export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const actividadId = params.id;
+  const params = await props.params; // Obtener los parámetros de la ruta
+  const actividadId = params.id; // ID de la actividad que se quiere agregar a Favoritos
 
   const access_token = req.cookies.get("sb-access-token")?.value;
   if (!access_token)
@@ -17,8 +18,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   const { data: favoritos, error: favError } = await supabase
     .from("coleccion")
     .select("id")
-    .eq("usuario_id", user.id)
-    .eq("tipo", "favoritos")
+    .eq("usuario_id", user.id) // Filtrar por el usuario autenticado
+    .eq("tipo", "favoritos") // Filtrar por la colección de favoritos
     .single();
 
   if (favError || !favoritos)
@@ -28,8 +29,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   const { data, error } = await supabase
     .from("coleccion_actividad")
     .upsert(
-      { coleccion_id: favoritos.id, actividad_id: actividadId },
-      { onConflict: "coleccion_id,actividad_id" }
+      { coleccion_id: favoritos.id, actividad_id: actividadId }, // Insertar la relación entre la colección Favoritos y la actividad
+      { onConflict: "coleccion_id,actividad_id" } // Evitar duplicados: si ya existe la relación, no hacer nada
     );
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
   return NextResponse.json({ message: "Actividad agregada a Favoritos" });
 }
 
+// DELETE: Elimina una actividad de la colección Favoritos del usuario autenticado
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const actividadId = params.id;
@@ -53,6 +55,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
   const { data: favoritos, error: favError } = await supabase
     .from("coleccion")
     .select("id")
+    // Filtrar por el usuario autenticado y la colección de favoritos
     .eq("usuario_id", user.id)
     .eq("tipo", "favoritos")
     .single();
@@ -64,8 +67,8 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
   const { error } = await supabase
     .from("coleccion_actividad")
     .delete()
-    .eq("coleccion_id", favoritos.id)
-    .eq("actividad_id", actividadId);
+    .eq("coleccion_id", favoritos.id) // Filtrar por la colección Favoritos del usuario
+    .eq("actividad_id", actividadId); // Filtrar por la actividad que se quiere eliminar de Favoritos
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

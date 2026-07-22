@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
   const { data: coleccionFavoritos, error: coleccionError } = await supabase
     .from("coleccion")
     .select("id")
-    .eq("usuario_id", user.id)
-    .eq("tipo", "favoritos")
+    .eq("usuario_id", user.id) // Filtrar por el usuario autenticado
+    .eq("tipo", "favoritos") // Filtrar por la colección de favoritos
     .single();
 
   if (coleccionError || !coleccionFavoritos)
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   const { data: favoritos, error } = await supabase
     .from("coleccion_actividad")
     .select("actividad_id")
-    .eq("coleccion_id", coleccionFavoritos.id);
+    .eq("coleccion_id", coleccionFavoritos.id); // Filtrar por la colección de favoritos del usuario
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

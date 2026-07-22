@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// GET: Devuelve la cantidad de likes (usuarios que tienen la actividad en favoritos) para una actividad específica
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+  const params = await props.params; // Obtener los parámetros de la ruta
 
   const access_token = req.cookies.get("sb-access-token")?.value;
   if (!access_token)
@@ -34,20 +35,21 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
   // Extraer los IDs de categorías
   const categorias_ids = actividad.actividad_categoria?.map(
-    (ac: any) => ac.categoria_id
+    (ac: any) => ac.categoria_id // Extraer solo el ID de la categoría
   ) || [];
 
-  console.log("IDs de categorías:", categorias_ids);
+  console.log("IDs de categorías:", categorias_ids); // Imprimir los IDs de categorías
 
   // Transformar la respuesta para el frontend
   const respuesta = {
-    ...actividad,
-    categorias_ids,
+    ...actividad, // Incluir todos los campos de la actividad
+    categorias_ids, // Incluir los IDs de categorías
   };
 
   return NextResponse.json(respuesta);
 }
 
+// PATCH: Actualiza una actividad específica
 export async function PATCH(
   req: NextRequest,
   props: { params: Promise<{ id: string }> }
@@ -61,9 +63,9 @@ export async function PATCH(
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const {
-    data: { user },
+    data: { user }, // Obtener el usuario autenticado
     error: userError,
-  } = await supabase.auth.getUser(access_token);
+  } = await supabase.auth.getUser(access_token); 
 
   if (userError || !user)
     return NextResponse.json({ error: "Token inválido" }, { status: 401 });
@@ -75,7 +77,7 @@ export async function PATCH(
   const { data: actividad, error: actError } = await supabase
     .from("actividad")
     .select("usuario_id")
-    .eq("id", id)
+    .eq("id", id) // Filtrar por la actividad especificada
     .single();
 
   if (actError || !actividad)
@@ -112,7 +114,7 @@ export async function PATCH(
     .select("archivo_url")
     .eq("actividad_id", id);
 
-  const actualesUrls = archivosActuales?.map((a) => a.archivo_url) || [];
+  const actualesUrls = archivosActuales?.map((a) => a.archivo_url) || []; // Obtener solo las URLs de los archivos actuales
 
   // Determinar cuáles eliminar
   const archivosAEliminar = actualesUrls.filter(

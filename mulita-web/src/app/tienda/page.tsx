@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductosWrapper from "@/components/ui/tienda/ProductosWrapper";
 
+// Definición de la interfaz TipoProducto para tipar los datos de los tipos de productos
 interface TipoProducto {
   id: string;
   nombre: string;
@@ -11,41 +12,44 @@ interface TipoProducto {
   bgColor: string;
 }
 
+// Definición de los tipos de productos disponibles en la tienda
 const TIPOS_PRODUCTOS: TipoProducto[] = [
   { id: "kit", nombre: "Kit", color: "text-blue-800", bgColor: "bg-blue-100" },
   { id: "pieza", nombre: "Pieza", color: "text-green-800", bgColor: "bg-green-100" },
   { id: "capacitacion", nombre: "Capacitación", color: "text-purple-800", bgColor: "bg-purple-100" }
 ];
 
+// Componente principal de la página de la tienda
 function TiendaContent() {
   const searchParams = useSearchParams();
-  const productIdFromUrl = searchParams.get("productId");
+  const productIdFromUrl = searchParams.get("productId"); // Obtener el ID del producto desde los parámetros de búsqueda de la URL
   
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); // Estado para manejar errores de carga no se usa porque no se muestra en la UI
   const [tipoSeleccionado, setTipoSeleccionado] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const limit = 12;
 
+  // Función para traer productos desde la API con filtros y paginación
   const fetchProductos = async () => {
     setLoading(true);
     setError(null);
     try {
-      let url = `/api/productos?page=${page}&limit=${limit}`;
-      if (tipoSeleccionado) {
-        url += `&tipo_producto=${tipoSeleccionado}`;
+      let url = `/api/productos?page=${page}&limit=${limit}`; // URL base para la API de productos con paginación
+      if (tipoSeleccionado) { // Agregar filtro de tipo de producto si se ha seleccionado uno
+        url += `&tipo_producto=${tipoSeleccionado}`; 
       }
-      if (busqueda.trim()) {
+      if (busqueda.trim()) { // Agregar filtro de búsqueda si hay texto en la barra de búsqueda
         url += `&busqueda=${encodeURIComponent(busqueda.trim())}`;
       }
       const res = await fetch(url);
       const data = await res.json();
 
-      setProductos(data?.productos || []);
-      setTotal(data?.total || 0);
+      setProductos(data?.productos || []); // Asegurarse de que la respuesta tenga la estructura esperada
+      setTotal(data?.total || 0); // Asegurarse de que la respuesta tenga la estructura esperada
     } catch (err) {
       console.error("Error fetching productos:", err);
       setError("Error al cargar productos");
@@ -57,8 +61,9 @@ function TiendaContent() {
 
   useEffect(() => {
     fetchProductos();
-  }, [page, tipoSeleccionado, busqueda]);
+  }, [page, tipoSeleccionado, busqueda]); // Refrescar productos cada vez que cambien la página, el tipo seleccionado o la búsqueda
 
+  // Calcular el total de páginas para la paginación
   const totalPages = Math.ceil(total / limit);
 
   return (

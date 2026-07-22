@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-
+// GET: Devuelve todas las órdenes de compra de un usuario específico
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -77,6 +77,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // Guardar items de la orden
     const itemsPayload = items.map((item: any) => ({
       orden_id: orden.id,
       producto_id: item.producto_id,

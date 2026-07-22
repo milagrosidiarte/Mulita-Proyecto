@@ -5,6 +5,7 @@ import SidebarDashboard from "@/components/ui/dashboard/SidebarDashboard";
 import HeaderDashboard from "@/components/ui/dashboard/HeaderDashboard";
 import BackButton from "@/components/ui/dashboard/BackButton";
 
+// Definimos la función para el layout del dashboard, que incluye la barra lateral, el encabezado y un botón de retroceso
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
 

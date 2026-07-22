@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 
+// Función para manejar la solicitud GET de /auth/me
 export async function GET(req: NextRequest) {
   try {
-    let access_token = req.cookies.get("sb-access-token")?.value;
-    const refresh_token = req.cookies.get("sb-refresh-token")?.value;
+    let access_token = req.cookies.get("sb-access-token")?.value; // Obtener el token de acceso desde las cookies
+    const refresh_token = req.cookies.get("sb-refresh-token")?.value; // Obtener el token de refresco desde las cookies
 
-    if (!access_token && refresh_token) {
-      const { data, error } = await supabaseServer.auth.refreshSession({ refresh_token });
-      if (error || !data.session || !data.user) return NextResponse.json({ user: null });
-      access_token = data.session.access_token;
+    if (!access_token && refresh_token) { // Si no hay token de acceso pero sí hay token de refresco, intentar refrescar la sesión
+      const { data, error } = await supabaseServer.auth.refreshSession({ refresh_token }); // Intentar refrescar la sesión usando el token de refresco
+      if (error || !data.session || !data.user) return NextResponse.json({ user: null }); // Si hay un error al refrescar la sesión, devolver null
+      access_token = data.session.access_token; // Actualizar el token de acceso con el nuevo token obtenido al refrescar la sesión
     }
 
-    if (!access_token) return NextResponse.json({ user: null });
+    if (!access_token) return NextResponse.json({ user: null }); // Si no hay token de acceso, devolver null
 
+    // Obtener el usuario autenticado usando el token de acceso
     const { data: { user }, error } = await supabaseServer.auth.getUser(access_token);
-    if (error || !user) return NextResponse.json({ user: null });
+    if (error || !user) return NextResponse.json({ user: null }); // Si hay un error al obtener el usuario o no se encuentra el usuario, devolver null
 
     // Traer datos de usuario
     const { data: usuario, error: usuarioError } = await supabaseServer
@@ -24,7 +26,7 @@ export async function GET(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (usuarioError) return NextResponse.json({ user: null });
+    if (usuarioError) return NextResponse.json({ user: null }); // Si hay un error al obtener los datos del usuario, devolver null
 
     // Traer imagen desde tabla perfil
     const { data: perfil, error: perfilError } = await supabaseServer

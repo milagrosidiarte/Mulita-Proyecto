@@ -7,17 +7,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 import { uploadFile } from "@/lib/subirArchivos";
 
+// Definición de la interfaz ArchivoSubido para tipar los datos del archivo subido
 interface ArchivoSubido {
   url: string;
   name: string;
   type: string;
 }
 
-
+// Componente principal de la página de edición de perfil
 export default function EditarPerfilPage() {
-  const params = useParams();
+  const params = useParams(); // Obtener parámetros de la URL, como el ID del perfil
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient(); // Instancia de QueryClient para invalidar queries y refrescar datos
 
   const [biografia, setBiografia] = useState("");
   const [imagen, setImagen] = useState<File | string | null>(null);
@@ -46,8 +47,8 @@ export default function EditarPerfilPage() {
         if (!res.ok) throw new Error("Perfil no encontrado");
         const data = await res.json();
 
-        setBiografia(data.perfil.biografia || "");
-        setImagen(data.perfil.imagen || null);
+        setBiografia(data.perfil.biografia || ""); // Si no hay biografía, se establece como cadena vacía
+        setImagen(data.perfil.imagen || null); // Si no hay imagen, se establece como null
         setNombre(data.perfil.usuario.nombre || "");
         setApellido(data.perfil.usuario.apellido || "");
       } catch (err) {
@@ -98,12 +99,14 @@ export default function EditarPerfilPage() {
       return;
     }
 
+    // Si no hay errores, proceder a enviar los datos
     setSubmitting(true);
 
-    try {
-      const archivoSubido: ArchivoSubido[] = []
+    // Manejo de la subida de imagen y actualización del perfil
+    try { // el try porque la subida de archivos puede fallar
+      const archivoSubido: ArchivoSubido[] = [] // Array para almacenar la información del archivo subido
 
-      if (imagen instanceof File) {
+      if (imagen instanceof File) { // Si la imagen es un archivo, subirla
         try {
           const sanitizedFileName = sanitizeFileName(imagen.name);
           const filePath = `perfiles/${params.id}/${Date.now()}_${sanitizedFileName}`;
@@ -121,14 +124,15 @@ export default function EditarPerfilPage() {
         }
       }
 
-      const nuevaUrlImagen =
-      archivoSubido.length > 0
-        ? archivoSubido[0].url
-        : typeof imagen === "string"
-        ? imagen
-        : null;
+      // Determinar la URL de la imagen a enviar en la solicitud PATCH
+      const nuevaUrlImagen = 
+      archivoSubido.length > 0 // Si hay archivos subidos, usar la URL del primero
+        ? archivoSubido[0].url // Usar la URL del archivo subido
+        : typeof imagen === "string" // Si la imagen es una cadena (URL existente), usarla
+        ? imagen 
+        : null; // Si no hay imagen, enviar null
 
-      const res = await fetch(`/api/perfil/${params.id}`, {
+      const res = await fetch(`/api/perfil/${params.id}`, { // Enviar solicitud PATCH para actualizar el perfil
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -161,7 +165,7 @@ export default function EditarPerfilPage() {
       toast.success("Perfil actualizado exitosamente");
       
       // Refrescar datos del usuario en todas partes
-      await queryClient.invalidateQueries({ queryKey: ["user"] });
+      await queryClient.invalidateQueries({ queryKey: ["user"] }); 
       
       // Si cambió la contraseña, redirigir a login
       if (passwordNueva) {

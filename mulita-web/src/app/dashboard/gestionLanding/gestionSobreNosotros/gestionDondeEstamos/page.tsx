@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-export default function GestionMisionVisionPage() {
+// Definimos la función para la página de gestión de "Dónde Estamos", que incluye la funcionalidad para editar el título y contenido de la sección
+export default function GestionMisionVisionPage() { 
   const router = useRouter();
 
   const [titulo, setTitulo] = useState("");
@@ -22,8 +23,8 @@ export default function GestionMisionVisionPage() {
         if (!res.ok) throw new Error("No se pudo obtener la información");
         const data = await res.json();
 
-        setTitulo(data.titulo);
-        setContenido(data.contenido ?? ""); // <-- Cargar descripción
+        setTitulo(data.titulo); // Cargar título
+        setContenido(data.contenido ?? ""); // Cargar descripción
       } catch (err) {
         console.error(err);
       } finally {
@@ -34,14 +35,15 @@ export default function GestionMisionVisionPage() {
     fetchDondeEstamos();
   }, []);
 
+  // Función para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
       const formData = new FormData();
-      formData.append("titulo", titulo);
-      formData.append("contenido", contenido);
+      formData.append("titulo", titulo); // Agregamos el título al FormData
+      formData.append("contenido", contenido); // Agregamos el contenido al FormData
 
       const res = await fetch("/api/sobreNosotros/dondeEstamos", {
         method: "PATCH",
@@ -51,7 +53,7 @@ export default function GestionMisionVisionPage() {
 
       if (!res.ok) throw new Error("Error al actualizar el contenido");
 
-      router.push("/dashboard/gestionLanding/gestionSobreNosotros");
+      router.push("/dashboard/gestionLanding/gestionSobreNosotros"); // Redirigimos a la página de gestión de "Sobre Nosotros" después de guardar los cambios
     } catch (err) {
       console.error(err);
       alert("Error al actualizar Donde Estamos");
@@ -60,6 +62,7 @@ export default function GestionMisionVisionPage() {
     }
   };
 
+  // Función para manejar la cancelación del formulario, redirigiendo a la página de gestión de "Sobre Nosotros"
   const handleCancel = () =>
     router.push("/dashboard/gestionLanding/gestionSobreNosotros");
 
@@ -100,20 +103,20 @@ export default function GestionMisionVisionPage() {
               value={contenido}
               onChange={(e) => setContenido(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Tab") {
+                if (e.key === "Tab") { // Si se presiona la tecla Tab, insertamos un bullet point en lugar de cambiar el foco
                   e.preventDefault();
 
-                  const textarea = textAreaRef.current;
-                  if (!textarea) return;
+                  const textarea = textAreaRef.current; // Obtenemos la referencia al textarea
+                  if (!textarea) return; // Si no hay referencia, salimos de la función
 
-                  const start = textarea.selectionStart;
-                  const end = textarea.selectionEnd;
+                  const start = textarea.selectionStart; // Guardamos la posición del cursor antes de insertar el bullet
+                  const end = textarea.selectionEnd; // Guardamos la posición del cursor antes de insertar el bullet
 
                   // Insertar bullet point
                   const bullet = "• ";
 
                   const updatedText =
-                    contenido.substring(0, start) + bullet + contenido.substring(end);
+                    contenido.substring(0, start) + bullet + contenido.substring(end); // Creamos el nuevo contenido con el bullet insertado
 
                   setContenido(updatedText);
 

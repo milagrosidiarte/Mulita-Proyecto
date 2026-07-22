@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { uploadFile } from "@/lib/subirArchivos";
 import { toast } from "react-hot-toast"
 
+// Definición de interfaces para tipar los datos del producto y errores del formulario
 interface TipoProducto {
   id: string;
   nombre: string;
@@ -32,6 +33,7 @@ const TIPOS_PRODUCTOS: TipoProducto[] = [
   { id: "capacitacion", nombre: "Capacitación", color: "text-purple-800", bgColor: "bg-purple-100" }
 ];
 
+// Componente principal de la página de creación de productos
 export default function CrearProductoPage() {
   const router = useRouter();
   const [nombre, setNombre] = useState("");
@@ -42,13 +44,13 @@ export default function CrearProductoPage() {
   const [errores, setErrores] = useState<ErroresFormulario>({});
 
   // Manejo de imagenes
-  const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nuevasImagenes = e.target.files ? Array.from(e.target.files) : [];
-    setImagenes((prev) => [...prev, ...nuevasImagenes]);
+  const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => { //React.ChangeEvent<HTMLInputElement> para tipar correctamente el evento
+    const nuevasImagenes = e.target.files ? Array.from(e.target.files) : []; // Convertir FileList a Array
+    setImagenes((prev) => [...prev, ...nuevasImagenes]); // Agregar nuevas imágenes al estado existente
   };
 
   const handleEliminarImagen = (index: number) => {
-    setImagenes((prev) => prev.filter((_, i) => i !== index));
+    setImagenes((prev) => prev.filter((_, i) => i !== index)); // Eliminar imagen por índice, no necesitamos el nombre del archivo
   };
 
   // Función para limpiar nombres de archivo
@@ -81,14 +83,14 @@ export default function CrearProductoPage() {
 
     setErrores(nuevosErrores);
 
-    if (Object.keys(nuevosErrores).length > 0) return;
+    if (Object.keys(nuevosErrores).length > 0) return; // Si hay errores, no continuar
 
-    try {
-      const archivosSubidos: ArchivoSubido[] = [];
-      for (const imagen of imagenes) {
+    try { // Subir imágenes y crear producto
+      const archivosSubidos: ArchivoSubido[] = []; // Array para almacenar la información de los archivos subidos
+      for (const imagen of imagenes) { // Iterar sobre cada imagen seleccionada
         try {
           const sanitizedFileName = sanitizeFileName(imagen.name);
-          const filePath = `productos/imagenes/${Date.now()}_${sanitizedFileName}`;
+          const filePath = `productos/imagenes/${Date.now()}_${sanitizedFileName}`; // Crear un path único para cada imagen usando timestamp y nombre sanitizado
                     
           // Subir archivo usando la función uploadFile
           const url = await uploadFile(imagen, filePath);
@@ -115,7 +117,7 @@ export default function CrearProductoPage() {
           imagenes: archivosSubidos,
           tipo_producto: tipoSeleccionado || null,
         }),
-        credentials: "include",
+        credentials: "include", // Incluir cookies para autenticación si es necesario
       });
 
       if (!res.ok) {

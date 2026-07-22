@@ -29,11 +29,11 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false });
 
   if (search) {
-    query = query.ilike("nombre", `%${search}%`);
+    query = query.ilike("nombre", `%${search}%`); // Filtrar por nombre (case-insensitive)
   }
 
   if (rol) {
-    query = query.eq("rol", rol);
+    query = query.eq("rol", rol); // Filtrar por rol
   }
 
   const { data, error } = await query;

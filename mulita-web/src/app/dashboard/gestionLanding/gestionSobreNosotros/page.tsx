@@ -45,6 +45,7 @@ export default function GestionInicioPage() {
   );
 }
 
+// Definimos un array de objetos que representan las tarjetas de gestión de las diferentes secciones de la página "Sobre Nosotros"
 const cards = [
   {
     href: "/dashboard/gestionLanding/gestionSobreNosotros/gestionSecciones",

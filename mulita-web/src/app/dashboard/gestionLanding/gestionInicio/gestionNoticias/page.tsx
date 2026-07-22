@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@/hooks/queries";
 
+// Definimos la interfaz para una noticia, que incluye su id, título y si se muestra en inicio
 interface Noticia {
   id: number;
   titulo: string;
   mostrar_en_inicio: boolean;
 }
 
+// Definimos la función para la página de gestión de noticias, que incluye la lista de noticias y la funcionalidad para marcar/desmarcar si se muestran en inicio
 export default function GestionNoticiasPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [noticias, setNoticias] = useState<Noticia[]>([]);
@@ -20,11 +22,11 @@ export default function GestionNoticiasPage() {
       try {
         const res = await fetch("/api/noticias");
         const data = await res.json();
-        const noticiasArray = Array.isArray(data) ? data : (data?.noticias || []);
-        setNoticias(noticiasArray.reverse());
+        const noticiasArray = Array.isArray(data) ? data : (data?.noticias || []); // Asegurarse de que data sea un array
+        setNoticias(noticiasArray.reverse()); // Invertir el orden de las noticias para mostrar la más reciente primero
       } catch (err) {
         console.error("Error fetching noticias:", err);
-        setNoticias([]);
+        setNoticias([]); // En caso de error, establecer noticias como un array vacío
       } finally {
         setLoadingNoticias(false);
       }
@@ -46,7 +48,7 @@ export default function GestionNoticiasPage() {
       console.log("respuesta del patch: ", updated);
 
       setNoticias((prev) =>
-        prev.map((n) => (n.id === noticia.id ? updated[0] : n))
+        prev.map((n) => (n.id === noticia.id ? updated[0] : n)) // Actualizar la noticia específica en el estado local
       );
     } catch (err) {
       console.error(err);

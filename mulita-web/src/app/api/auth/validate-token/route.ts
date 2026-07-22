@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 
+// Función para manejar la solicitud POST de validación de token
 export async function POST(req: NextRequest) {
   try {
-    const { access_token, refresh_token } = await req.json();
+    const { access_token, refresh_token } = await req.json(); // Obtener los tokens de acceso y refresco del cuerpo de la solicitud
 
-    if (!access_token) {
+    if (!access_token) { // Si no se proporciona un token de acceso, devolver un error
       return NextResponse.json(
         { success: false, message: "Token no proporcionado" },
         { status: 400 }
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     // 1. Validar el token con Supabase
     const { data: { user }, error: authError } = await supabaseServer.auth.getUser(access_token);
     
-    if (authError || !user) {
+    if (authError || !user) { // Si hay un error al validar el token o no se encuentra el usuario, devolver un error
       return NextResponse.json(
         { success: false, message: "Token inválido" },
         { status: 401 }
@@ -23,11 +24,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Obtener la sesión para tener el refresh token
-    const { data: sessionData, error: sessionError } = await supabaseServer.auth.setSession({
-      access_token,
-      refresh_token: refresh_token || '',
+    const { data: sessionData, error: sessionError } = await supabaseServer.auth.setSession({ // Establecer la sesión con el token de acceso y refresco
+      access_token, // El token de acceso proporcionado
+      refresh_token: refresh_token || '', // El token de refresco proporcionado o una cadena vacía si no se proporciona
     });
 
+    // Si hay un error al establecer la sesión o no se obtiene la sesión, devolver un error
     if (sessionError || !sessionData.session) {
       return NextResponse.json(
         { success: false, message: "Error al establecer sesión" },
@@ -72,13 +74,14 @@ export async function POST(req: NextRequest) {
         .eq("id_usuario", user.id)
         .single();
 
+      // Si hay un error al obtener los datos del docente y no es un error de "no encontrado", devolver un error
       if (docenteError && docenteError.code !== "PGRST116") {
         return NextResponse.json(
           { success: false, message: "Error al obtener datos del docente" },
           { status: 400 }
         );
       }
-      docente = docenteData;
+      docente = docenteData; // Guardar los datos del docente si se encuentran
     }
 
     // 6. Guardar tokens en cookies HTTP-only para persistencia de sesión
@@ -97,7 +100,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    res.cookies.set("sb-access-token", sessionData.session.access_token, {
+    res.cookies.set("sb-access-token", sessionData.session.access_token, { // Guardar el token de acceso en una cookie HTTP-only
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
@@ -105,7 +108,7 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 30, // 30 días
     });
 
-    res.cookies.set("sb-refresh-token", sessionData.session.refresh_token, {
+    res.cookies.set("sb-refresh-token", sessionData.session.refresh_token, { 
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",

@@ -5,6 +5,9 @@ import { useParams } from "next/navigation";
 import BackButton from "@/components/ui/dashboard/BackButton";
 import SkeletonNoticiaDetalle from "@/components/ui/noticias/skeletons/SkeletonNoticiaDetalle";
 
+// Definimos la interfaz para el tipo de datos de una noticia, 
+// que incluye propiedades como id, título, autor, introducción, 
+// descripción, imagen principal, archivo opcional y fecha de creación
 interface Noticia {
   id: number;
   titulo: string;
@@ -16,11 +19,15 @@ interface Noticia {
   created_at: string;
 }
 
+// Definimos la función para la página de detalle de una noticia, 
+// que incluye la visualización de la información completa de la noticia 
+// y un botón para regresar a la lista de noticias
 export default function NoticiaDetalle() {
   const params = useParams();
   const [noticia, setNoticia] = useState<Noticia | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Función para formatear la fecha de creación de la noticia a un formato legible
   const formatDate = (dateString: string) => {
     if (!dateString) return "Sin fecha";
     const date = new Date(dateString);
@@ -28,6 +35,8 @@ export default function NoticiaDetalle() {
     return date.toLocaleDateString();
   }
 
+  // useEffect para obtener la noticia desde la API cuando el componente se monta 
+  // o cuando cambia el id de la noticia
   useEffect(() => {
     const fetchNoticia = async () => {
       try {
@@ -47,7 +56,7 @@ export default function NoticiaDetalle() {
     };
 
     fetchNoticia();
-  }, [params.id]);
+  }, [params.id]); // Dependencia para volver a cargar si cambia el id de la noticia
 
   if (loading) return <SkeletonNoticiaDetalle /> ;
   if (!noticia) return <div className="text-center py-10">No se encontró la noticia</div>;

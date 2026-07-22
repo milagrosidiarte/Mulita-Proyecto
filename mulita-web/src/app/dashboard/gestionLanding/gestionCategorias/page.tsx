@@ -26,21 +26,22 @@ export default function GestionCategoriasPage() {
       try {
         const res = await fetch("/api/categorias");
         const data = await res.json();
-        const categoriasArray = Array.isArray(data) ? data : (data?.categorias || []);
-        setCategorias(categoriasArray.reverse());
+        const categoriasArray = Array.isArray(data) ? data : (data?.categorias || []); // Asegurarse de que data es un array
+        setCategorias(categoriasArray.reverse()); // Invertir el orden para mostrar las categorías más recientes primero
       } catch (err) {
         console.error("Error fetching categorias:", err);
         setCategorias([]);
       } finally {
-        setLoadingCategorias(false);
+        setLoadingCategorias(false); // Asegurarse de que el estado de carga se actualice incluso si hay un error
       }
     };
-    fetchCategorias();
+    fetchCategorias(); // Llamar a la función para traer categorías al montar el componente
   }, []);
 
+  // Manejar la creación de una nueva categoría
   const handleCrear = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nombre.trim()) return;
+    e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+    if (!nombre.trim()) return; // No permitir nombres vacíos
     try {
       const res = await fetch("/api/categorias", {
         method: "POST",
@@ -49,14 +50,15 @@ export default function GestionCategoriasPage() {
       });
       if (!res.ok) throw new Error("Error al crear categoría");
       const nueva = await res.json();
-      setCategorias((prev) => [nueva, ...prev]);
-      setNombre("");
-      setTipo("curso");
+      setCategorias((prev) => [nueva, ...prev]); // Agregar la nueva categoría al inicio del array para que aparezca primero
+      setNombre(""); // Limpiar el input de nombre después de crear la categoría
+      setTipo("curso"); // Resetear el tipo a "curso" después de crear una categoría
     } catch (err) {
       console.error("Error creando categoría:", err);
     }
   };
 
+  // Manejar la eliminación de una categoría
   const handleEliminar = async (id: string) => {
     try {
       const res = await fetch(`/api/categorias`, {
@@ -65,8 +67,8 @@ export default function GestionCategoriasPage() {
         body: JSON.stringify({ id }),
       });
       if (!res.ok) throw new Error("Error al eliminar categoría");
-      setCategorias((prev) => prev.filter((c) => c.id !== id));
-      setConfirmDelete(null);
+      setCategorias((prev) => prev.filter((c) => c.id !== id)); // Filtrar la categoría eliminada
+      setConfirmDelete(null); // Cerrar el diálogo de confirmación después de eliminar
     } catch (err) {
       console.error("Error eliminando categoría:", err);
     }
@@ -139,7 +141,7 @@ export default function GestionCategoriasPage() {
         <input
           type="text"
           value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          onChange={(e) => setBusqueda(e.target.value)} // Actualizar el estado de búsqueda al cambiar el input
           placeholder="Buscar categoría..."
           className="flex-1 px-4 py-3 border border-[#ccc] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
         />
@@ -158,11 +160,11 @@ export default function GestionCategoriasPage() {
 
       {/* Lista de categorías */}
       <div className="flex-1 w-full max-w-[1100px] mt-6 flex flex-col gap-4">
-        {categorias
+        {categorias // Filtrar categorías según la búsqueda y el filtro de tipo
           .filter((c) =>
-            c.nombre.toLowerCase().includes(busqueda.toLowerCase())
+            c.nombre.toLowerCase().includes(busqueda.toLowerCase()) // Filtrar por búsqueda
           )
-          .filter((c) => (filtroTipo ? c.tipo === filtroTipo : true))
+          .filter((c) => (filtroTipo ? c.tipo === filtroTipo : true)) // Aplicar filtro de tipo si se selecciona uno
           .length === 0 ? (
           <p className="text-center text-gray-500 mt-10">
             {categorias.length === 0
@@ -171,11 +173,11 @@ export default function GestionCategoriasPage() {
           </p>
         ) : (
           categorias
-            .filter((c) =>
+            .filter((c) => 
               c.nombre.toLowerCase().includes(busqueda.toLowerCase())
             )
-            .filter((c) => (filtroTipo ? c.tipo === filtroTipo : true))
-            .map((categoria) => (
+            .filter((c) => (filtroTipo ? c.tipo === filtroTipo : true)) // Aplicar filtro de tipo si se selecciona uno
+            .map((categoria) => ( // Mapear las categorías filtradas a elementos JSX
               <div
                 key={categoria.id}
                 className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6 bg-white border border-[#e1e4ed] rounded-lg shadow-sm hover:shadow-md transition"
@@ -196,8 +198,8 @@ export default function GestionCategoriasPage() {
                     </div>
                   )}
                 </div>
-
-                {(user?.rol === "admin" || user?.rol === "superAdmin") && (
+                
+                {(user?.rol === "admin" || user?.rol === "superAdmin") && ( // Si es admin o superAdmin puede eliminar una categoria
                   <button
                     onClick={() => setConfirmDelete(categoria.id)}
                     className="self-end sm:self-auto bg-red-600 text-white px-3 py-1 rounded-md text-sm font-semibold hover:bg-red-700 transition"

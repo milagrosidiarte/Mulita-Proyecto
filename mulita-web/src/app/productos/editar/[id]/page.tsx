@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { uploadFile } from "@/lib/subirArchivos";
 import { toast } from "react-hot-toast"
 
+// Definición de interfaces para tipar los datos del producto y errores del formulario
 interface TipoProducto {
   id: string;
   nombre: string;
@@ -12,12 +13,14 @@ interface TipoProducto {
   bgColor: string;
 }
 
+// Interfaz para archivos existentes asociados al producto
 interface ArchivoExistente {
   archivo_url: string;
   nombre: string;
   eliminado?: boolean;
 }
 
+// Interfaz para errores del formulario
 interface ErroresFormulario {
   nombre?: string;
   descripcion?: string;
@@ -25,6 +28,7 @@ interface ErroresFormulario {
   imagenes?: string;
 }
 
+// Interfaz para archivos subidos
 interface ArchivoSubido {
   url: string;
   name: string;
@@ -38,9 +42,10 @@ const TIPOS_PRODUCTOS: TipoProducto[] = [
   { id: "capacitacion", nombre: "Capacitación", color: "text-purple-800", bgColor: "bg-purple-100" }
 ];
 
+// Componente principal de la página de edición de productos
 export default function EditarProductoPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = useParams(); // Obtener parámetros de la URL, como el ID del producto
 
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -70,9 +75,9 @@ export default function EditarProductoPage() {
         setDescripcion(data.descripcion);
         setPrecio(String(data.precio));
         setArchivosExistentes(
-          (data.producto_archivos || []).map((a: any) => ({
-            archivo_url: a.archivo_url,
-            nombre: a.archivo_url.split("/").pop(),
+          (data.producto_archivos || []).map((a: any) => ({ // Mapear los archivos existentes a la interfaz ArchivoExistente
+            archivo_url: a.archivo_url, // URL del archivo
+            nombre: a.archivo_url.split("/").pop(), // Extraer el nombre del archivo de la URL
           }))
         );
 
@@ -88,29 +93,32 @@ export default function EditarProductoPage() {
     };
 
     fetchProducto();
-  }, [params.id, router]);
+  }, [params.id, router]); // Dependencias: params.id y router para recargar si cambian
 
   // Manejo de archivos
   const handleArchivosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nuevos = e.target.files ? Array.from(e.target.files) : [];
-    setArchivosNuevos((prev) => [...prev, ...nuevos]);
+    const nuevos = e.target.files ? Array.from(e.target.files) : []; // Convertir FileList a Array
+    setArchivosNuevos((prev) => [...prev, ...nuevos]); // Agregar nuevos archivos al estado existente
   };
 
+  // Función para eliminar un archivo nuevo seleccionado
   const handleEliminarArchivoNuevo = (index: number) => {
-    setArchivosNuevos((prev) => prev.filter((_, i) => i !== index));
+    setArchivosNuevos((prev) => prev.filter((_, i) => i !== index)); // Eliminar archivo por índice, no necesitamos el nombre del archivo
   };
 
+  // Función para marcar un archivo existente como eliminado
   const handleEliminarArchivoExistente = (nombre: string) => {
     setArchivosExistentes((prev) =>
-      prev.map((a) => (a.nombre === nombre ? { ...a, eliminado: true } : a))
+      prev.map((a) => (a.nombre === nombre ? { ...a, eliminado: true } : a)) // Marcar como eliminado, no eliminar del array para poder enviar la información al backend
     );
   };
 
+  // Función para limpiar nombres de archivo
   function sanitizeFileName(fileName: string) {
     return fileName
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      .normalize("NFD") // Normalizar para eliminar acentos
+      .replace(/[\u0300-\u036f]/g, "") // Eliminar diacríticos
+      .replace(/[^a-zA-Z0-9.\-_]/g, "_"); // Reemplazar caracteres no permitidos por guiones bajos
   }
 
   // Envío del formulario
@@ -131,17 +139,17 @@ export default function EditarProductoPage() {
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length > 0) return;
 
-    const urlsExistentes = archivosExistentes
-      .filter((a) => !a.eliminado)
-      .map((a) => a.archivo_url);
+    const urlsExistentes = archivosExistentes // Filtrar los archivos existentes que no han sido eliminados y obtener sus URLs
+      .filter((a) => !a.eliminado) 
+      .map((a) => a.archivo_url); 
 
-    try {
-      const archivosSubidos: ArchivoSubido[] = [];
+    try { // Subir archivos nuevos y actualizar el producto
+      const archivosSubidos: ArchivoSubido[] = []; // Array para almacenar la información de los archivos subidos
       
-      for (const archivo of archivosNuevos) {
+      for (const archivo of archivosNuevos) { // Iterar sobre cada archivo nuevo seleccionado
         try {
           const sanitizedFileName = sanitizeFileName(archivo.name);
-          const filePath = `productos/imagenes/${Date.now()}_${sanitizedFileName}`;
+          const filePath = `productos/imagenes/${Date.now()}_${sanitizedFileName}`; // Crear un path único para cada archivo usando timestamp y nombre sanitizado
           
           // Subir archivo usando la función uploadFile
           const url = await uploadFile(archivo, filePath);
@@ -164,9 +172,9 @@ export default function EditarProductoPage() {
           nombre,
           descripcion,
           precio,
-          archivosNuevos: archivosSubidos,
-          archivosExistentes: urlsExistentes,
-          tipo_producto: tipoSeleccionado || null,
+          archivosNuevos: archivosSubidos, // Incluir los archivos nuevos subidos
+          archivosExistentes: urlsExistentes, // Incluir solo los archivos existentes que no han sido eliminados
+          tipo_producto: tipoSeleccionado || null, // Incluir el tipo de producto seleccionado, o null si no hay ninguno
         }),
         credentials: "include",
       });

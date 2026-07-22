@@ -8,9 +8,10 @@ import { toast } from "react-hot-toast";
 interface MiembroEquipo {
   nombre: string;
   rol: string;
-  imagen: File | string | null;
+  imagen: File | string | null; // Puede ser un archivo (File) o una URL (string) o null
 }
 
+// Interface para manejar los errores de validación de cada miembro del equipo
 interface ErroresMiembro {
   nombre?: string;
   rol?: string;
@@ -28,6 +29,7 @@ export default function GestionQuienesSomosPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // Obtener datos actuales de la sección "Quiénes Somos"
   useEffect(() => {
     const fetchQuienesSomos = async () => {
       try {
@@ -35,14 +37,14 @@ export default function GestionQuienesSomosPage() {
         if (!res.ok) throw new Error("No se pudo obtener la información");
         const data = await res.json();
 
-        setTitulo(data.titulo || "");
-        setDescripcion(data.descripcion || "");
-        setEquipo(data.equipo?.map((m: any) => ({
+        setTitulo(data.titulo || ""); // Cargar título
+        setDescripcion(data.descripcion || ""); // Cargar descripción
+        setEquipo(data.equipo?.map((m: any) => ({ // Cargar miembros del equipo, asegurando que cada campo tenga un valor por defecto
           nombre: m.nombre || "",
           rol: m.rol || "",
           imagen: m.imagen || null
         })) || []);
-        setErroresMiembros((data.equipo || []).map(() => ({})));
+        setErroresMiembros((data.equipo || []).map(() => ({}))); // Inicializar errores de miembros como un array vacío con la misma longitud que el equipo
       } catch (err) {
         console.error(err);
       } finally {
@@ -55,9 +57,10 @@ export default function GestionQuienesSomosPage() {
   const sanitizeFileName = (fileName: string) =>
     fileName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_]/g, "_");
 
+  // Función para manejar los cambios en los campos de cada miembro del equipo
   const handleMiembroChange = (index: number, field: keyof MiembroEquipo, value: string | File | null) => {
-    const nuevoEquipo = [...equipo];
-    nuevoEquipo[index] = { ...nuevoEquipo[index], [field]: value };
+    const nuevoEquipo = [...equipo]; // Creamos una copia del estado actual del equipo para no mutar directamente el estado
+    nuevoEquipo[index] = { ...nuevoEquipo[index], [field]: value }; // Actualizamos el campo específico del miembro en la copia del estado
     setEquipo(nuevoEquipo);
 
     // Limpiar el error del campo específico
@@ -83,16 +86,19 @@ export default function GestionQuienesSomosPage() {
     }
   };
 
+  // Función para agregar un nuevo miembro al equipo 
   const agregarMiembro = () => {
     setEquipo([...equipo, { nombre: "", rol: "", imagen: null }]);
     setErroresMiembros([...erroresMiembros, {}]);
   };
 
+  // Función para eliminar un miembro del equipo por su índice
   const eliminarMiembro = (index: number) => {
     setEquipo(equipo.filter((_, i) => i !== index));
     setErroresMiembros(erroresMiembros.filter((_, i) => i !== index));
   };
 
+  // Función para validar el formulario antes de enviarlo, asegurando que todos los campos requeridos estén completos
   const validarFormulario = () => {
     let valido = true;
     const errores: ErroresMiembro[] = [];
@@ -131,6 +137,7 @@ export default function GestionQuienesSomosPage() {
     return valido;
   };
 
+  // Función para manejar el envío del formulario, que incluye la subida de las imágenes de los miembros del equipo y la actualización de la sección "Quiénes Somos" en la base de datos
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -140,24 +147,26 @@ export default function GestionQuienesSomosPage() {
       return;
     }
 
+    // Subir imágenes de los miembros del equipo y obtener sus URLs
     try {
-      const equipoSubido: MiembroEquipo[] = [];
+      const equipoSubido: MiembroEquipo[] = []; // Array para almacenar la información de los miembros del equipo con las URLs de las imágenes subidas
 
-      for (let i = 0; i < equipo.length; i++) {
+      for (let i = 0; i < equipo.length; i++) { // Iteramos sobre cada miembro del equipo para subir su imagen y obtener la URL correspondiente
         const miembro = equipo[i];
         let imagenURL = "";
 
-        if (miembro.imagen instanceof File) {
+        if (miembro.imagen instanceof File) { // Si la imagen es un archivo, subimos el archivo y obtenemos la URL
           const sanitizedFileName = sanitizeFileName(miembro.imagen.name);
           const filePath = `quienes_somos/miembros/${Date.now()}_${sanitizedFileName}`;
           imagenURL = await uploadFile(miembro.imagen, filePath);
-        } else if (typeof miembro.imagen === "string") {
+        } else if (typeof miembro.imagen === "string") { // Si la imagen es una URL (string), la mantenemos
           imagenURL = miembro.imagen;
         }
 
-        equipoSubido.push({ nombre: miembro.nombre, rol: miembro.rol, imagen: imagenURL });
+        equipoSubido.push({ nombre: miembro.nombre, rol: miembro.rol, imagen: imagenURL }); // Agregamos el miembro con la URL de la imagen al array de miembros subidos
       }
 
+      // Enviar los datos actualizados a la API
       const res = await fetch("/api/sobreNosotros/quienesSomos", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

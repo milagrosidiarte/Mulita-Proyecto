@@ -10,11 +10,13 @@ async function getItemsWithProducts(carritoId: string) {
     .eq("carrito_id", carritoId)
     .order("id", { ascending: false });
 
+  // Unir los datos de los productos con los items del carrito
   let itemsConProducto = [];
   if (items && items.length > 0) {
-    const productoIds = items.map(item => item.producto_id);
+    // Obtener los IDs de los productos de los items del carrito
+    const productoIds = items.map(item => item.producto_id); // Obtener los IDs de los productos de los items del carrito
     
-    const { data: productos } = await supabaseServer
+    const { data: productos } = await supabaseServer 
       .from("producto")
       .select(`
         *,
@@ -22,15 +24,15 @@ async function getItemsWithProducts(carritoId: string) {
       `)
       .in("id", productoIds);
 
-    itemsConProducto = items.map(item => {
-      const producto = productos?.find(p => p.id === item.producto_id);
-      const imagenUrl = producto?.producto_archivos?.[0]?.archivo_url || null;
+    itemsConProducto = items.map(item => { // Mapear cada item del carrito para agregarle los datos del producto correspondiente
+      const producto = productos?.find(p => p.id === item.producto_id); // Buscar el producto correspondiente al item del carrito
+      const imagenUrl = producto?.producto_archivos?.[0]?.archivo_url || null; // Obtener la URL de la imagen del producto (si existe) o null si no hay imagen
       
       return {
         ...item,
         producto: producto ? {
           id: producto.id,
-          nombre: producto.nombre || producto.titulo || `Producto ${producto.id?.slice(0, 8)}`,
+          nombre: producto.nombre || producto.titulo || `Producto ${producto.id?.slice(0, 8)}`, // Usar nombre, título o un identificador parcial si no hay nombre
           descripcion: producto.descripcion,
           imagen: imagenUrl,
           precio: producto.precio
@@ -39,17 +41,17 @@ async function getItemsWithProducts(carritoId: string) {
     });
   }
 
-  return itemsConProducto;
+  return itemsConProducto; // Devolver los items del carrito con los datos de los productos correspondientes
 }
 
-// Actualizar cantidad o eliminar item del carrito
+// Actualizar cantidad o eliminar item del carrito PUT 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+  { params }: { params: Promise<{ id: string }> } // Recibir el parámetro id del item del carrito desde la URL
+) { 
   try {
     const cookieStore = await cookies();
-    const access_token = cookieStore.get("sb-access-token")?.value;
+    const access_token = cookieStore.get("sb-access-token")?.value; // Obtener el token de acceso de Supabase desde las cookies
 
     if (!access_token) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -64,10 +66,11 @@ export async function PUT(
 
     const userId = user.id;
 
-    const { cantidad } = await req.json();
-    const resolvedParams = await params;
-    const itemId = resolvedParams.id;
+    const { cantidad } = await req.json(); // Obtener la nueva cantidad del item del carrito desde el cuerpo de la solicitud
+    const resolvedParams = await params; // Resolver los parámetros de la URL para obtener el id del item del carrito
+    const itemId = resolvedParams.id; // Obtener el id del item del carrito desde los parámetros de la URL
 
+    // Validar cantidad
     if (!cantidad || cantidad < 1) {
       return NextResponse.json(
         { error: "Cantidad inválida" },
@@ -87,6 +90,7 @@ export async function PUT(
       .eq("id", itemId)
       .single();
 
+    // Validar que el item exista y que pertenezca al usuario
     if (!item || item.carrito.usuario_id !== userId) {
       return NextResponse.json(
         { error: "Item no encontrado" },
@@ -112,6 +116,7 @@ export async function PUT(
       items?.reduce((sum, i) => sum + i.precio * i.cantidad, 0) || 0;
     const newCantidad = items?.reduce((sum, i) => sum + i.cantidad, 0) || 0;
 
+    // Actualizar total y cantidad de items en el carrito
     await supabaseServer
       .from("carritos")
       .update({
@@ -174,6 +179,7 @@ export async function DELETE(
       .eq("id", itemId)
       .single();
 
+    // Validar que el item exista y que pertenezca al usuario
     if (!item || item.carrito.usuario_id !== userId) {
       return NextResponse.json(
         { error: "Item no encontrado" },

@@ -7,11 +7,14 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { useUser } from "@/hooks/queries";
 import MenuAccionesNoticias from "@/components/ui/noticias/MenuAccionesNoticias";
 
+// Definimos la interfaz para una noticia, que incluye su id, título
 interface Noticia {
   id: number;
   titulo: string;
 }
 
+// Definimos la función para la página de gestión de noticias, que incluye la lista de noticias 
+// y la funcionalidad para marcar/desmarcar si se muestran en inicio
 export default function GestionNoticiasPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [noticias, setNoticias] = useState<Noticia[]>([]);
@@ -24,7 +27,7 @@ export default function GestionNoticiasPage() {
       try {
         const res = await fetch("/api/noticias");
         const data = await res.json();
-        const noticiasArray = Array.isArray(data) ? data : (data?.noticias || []);
+        const noticiasArray = Array.isArray(data) ? data : (data?.noticias || []); // Aseguramos que sea un array
         setNoticias(noticiasArray.reverse()); // Las más recientes primero
       } catch (err) {
         console.error("Error fetching noticias:", err);
@@ -33,13 +36,14 @@ export default function GestionNoticiasPage() {
         setLoadingNoticias(false);
       }
     };
-    fetchNoticias();
+    fetchNoticias(); // Llamamos a la función para traer las noticias al montar el componente
   }, []);
 
+  // Función para eliminar una noticia
   const handleEliminar = async (id: number) => {
     try {
       await fetch(`/api/noticias/${id}`, { method: "DELETE" });
-      setNoticias((prev) => prev.filter((n) => n.id !== id));
+      setNoticias((prev) => prev.filter((n) => n.id !== id)); // Actualizamos el estado para eliminar la noticia de la lista
       toast.success("Noticia eliminada exitosamente");
       setConfirmDelete(null);
     } catch (err) {
@@ -48,10 +52,12 @@ export default function GestionNoticiasPage() {
     }
   };
 
+  // Función para abrir el diálogo de confirmación de eliminación
   const handleOpenConfirmDelete = (id: number) => {
     setConfirmDelete(id);
   };
 
+  // Renderizamos un mensaje de carga mientras se obtienen los datos del usuario o las noticias
   if (isUserLoading || loadingNoticias) {
     return <p className="text-center mt-10">Cargando noticias...</p>;
   }

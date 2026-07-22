@@ -99,10 +99,12 @@ export default function EditarActividadPage() {
     setArchivosNuevos((prev) => [...prev, ...nuevos]);
   };
 
+  // Función para eliminar un archivo nuevo de la lista
   const handleEliminarArchivoNuevo = (index: number) => {
     setArchivosNuevos((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Función para marcar un archivo existente como eliminado
   const handleEliminarArchivoExistente = (nombre: string) => {
     setArchivosExistentes((prev) =>
       prev.map((a) =>
@@ -111,6 +113,7 @@ export default function EditarActividadPage() {
     );
   };
 
+  // Función para limpiar el nombre del archivo y evitar problemas con caracteres especiales
   function sanitizeFileName(fileName: string) {
     return fileName
       .normalize("NFD")

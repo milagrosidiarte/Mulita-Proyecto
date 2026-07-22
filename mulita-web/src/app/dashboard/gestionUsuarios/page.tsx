@@ -7,6 +7,9 @@ import UserSearch from "../../../components/ui/UserSearch";
 import Pagination from "../../../components/ui/dashboard/Pagination";
 import { exportUsuariosToExcel } from "../../../lib/exportToExcel";
 
+// Definimos la función para la página de gestión de usuarios, 
+// que incluye la lista de usuarios, la funcionalidad de búsqueda, 
+// filtrado por rol y exportación a Excel
 export default function GestionUsuariosPage() {
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -15,12 +18,13 @@ export default function GestionUsuariosPage() {
   const [rolFilter, setRolFilter] = useState<string>(""); // Nuevo filtro de rol
   const limit = 10;
 
+  // Función para obtener los usuarios desde la API con paginación, búsqueda y filtrado por rol
   const fetchUsuarios = async () => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      search,
-      ...(rolFilter && { rol: rolFilter }),
+      page: page.toString(), // Agregamos la página actual
+      limit: limit.toString(), // Agregamos el límite de usuarios por página
+      search, // Agregamos el término de búsqueda
+      ...(rolFilter && { rol: rolFilter }), // Agregamos el filtro de rol si está seleccionado
     });
     const res = await fetch(`/api/usuarios?${params}`);
     const data = await res.json();
@@ -28,6 +32,7 @@ export default function GestionUsuariosPage() {
     setTotal(data.total);
   };
 
+  // Función para exportar los usuarios a un archivo Excel, obteniendo todos los usuarios con los filtros actuales
   const handleExportToExcel = async () => {
     try {
       // Obtener todos los usuarios (sin paginación) con los filtros actuales desde el endpoint de exportación
@@ -41,6 +46,7 @@ export default function GestionUsuariosPage() {
       console.log("Datos del usuario para exportar:", data.usuarios[0]); // Log para debugging
       
       if (data.usuarios && data.usuarios.length > 0) {
+        // Generar un nombre de archivo único basado en la fecha y el filtro de rol
         const filename = `usuarios${rolFilter ? `_${rolFilter}` : ""}_${new Date().toLocaleDateString("es-AR").replace(/\//g, "-")}.xlsx`;
         exportUsuariosToExcel(data.usuarios, filename);
       }
@@ -51,7 +57,7 @@ export default function GestionUsuariosPage() {
 
   useEffect(() => {
     fetchUsuarios();
-  }, [page, search, rolFilter]);
+  }, [page, search, rolFilter]); // Llamamos a la función para traer los usuarios al montar el componente y cada vez que cambie la página, el término de búsqueda o el filtro de rol
 
   return (
     <div className="p-6">

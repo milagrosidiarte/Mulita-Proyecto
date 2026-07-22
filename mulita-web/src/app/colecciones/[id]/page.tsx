@@ -3,15 +3,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import MenuAccionesActividades from "@/components/ui//comunidad/MenuAccionesActividades";
-import ModalImagenActividades from "@/components/ui/comunidad/ModalImagenActividades";
-import ComentarioInput from "@/components/ui/comunidad/ComentarioInput";
-import ComentariosModal from "@/components/ui/comunidad/ComentariosModal";
-import ModalColecciones from "@/components/ui/comunidad/ModalColecciones";
-import { useUser } from "@/hooks/queries";
+import MenuAccionesActividades from "@/components/ui//comunidad/MenuAccionesActividades"; // Componente para mostrar el menú de acciones de actividades
+import ModalImagenActividades from "@/components/ui/comunidad/ModalImagenActividades"; // Componente para mostrar las imágenes de actividades en un modal
+import ComentarioInput from "@/components/ui/comunidad/ComentarioInput"; // Componente para agregar comentarios a una actividad
+import ComentariosModal from "@/components/ui/comunidad/ComentariosModal"; // Componente para mostrar los comentarios de una actividad en un modal
+import ModalColecciones from "@/components/ui/comunidad/ModalColecciones"; // Componente para mostrar el modal de colecciones y permitir agregar una actividad a una colección
+import { useUser } from "@/hooks/queries"; // Hook personalizado para obtener los datos del usuario autenticado
 import { useParams } from "next/navigation";
 import SkeletonColeccionDetalle from "@/components/ui/perfil/skeletons/SkeletonColeccionDetalle";
 
+// Tipos de datos 
 type Archivo = { archivo_url: string; tipo: string; nombre: string };
 type Categoria = { categoria: { nombre: string } };
 type Perfil = { imagen?: string };
@@ -28,6 +29,7 @@ type Actividad = {
   actividad_categoria?: Categoria[];
 };
 
+// Componente principal de la página de detalle de colección
 export default function ColeccionDetallePage() {
   const router = useRouter();
   const { id } = useParams();
@@ -63,6 +65,7 @@ export default function ColeccionDetallePage() {
     }
   };
 
+  // actualizar comentarios, cuando se agrega un nuevo comentario, se actualiza el contador de comentarios en la actividad correspondiente
   const actualizarComentarios = (actividadId: string, nuevoCount: number) => {
     setComentariosPorActividad((prev) => ({ ...prev, [actividadId]: nuevoCount }));
   };
@@ -81,13 +84,13 @@ export default function ColeccionDetallePage() {
         setActividades(acts);
         console.log("actividades", acts);
 
-        const counts: Record<string, number> = {};
-        await Promise.all(
+        const counts: Record<string, number> = {}; // Objeto para almacenar el conteo de comentarios por actividad
+        await Promise.all( // Esperamos a que todos los conteos de comentarios se completen antes de actualizar el estado
           acts.map(async (act) => {
-            counts[act.id] = await fetchComentariosCount(act.id);
+            counts[act.id] = await fetchComentariosCount(act.id); // Obtenemos el conteo de comentarios para cada actividad
           })
         );
-        setComentariosPorActividad(counts);
+        setComentariosPorActividad(counts); // Actualizamos el estado con los conteos de comentarios por actividad
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -104,15 +107,16 @@ export default function ColeccionDetallePage() {
       const res = await fetch("/api/colecciones/favoritos");
       if (!res.ok) return;
       const data = await res.json();
-      const favIds = data.map((f: { actividad_id: string }) => f.actividad_id);
-      setFavoritos(favIds);
+      const favIds = data.map((f: { actividad_id: string }) => f.actividad_id); // Extraemos solo los IDs de las actividades favoritas
+      setFavoritos(favIds); // Actualizamos el estado con los IDs de las actividades favoritas del usuario
     } catch (err) {
       console.error("Error al cargar favoritos", err);
     }
   }, []);
 
+  
   useEffect(() => {
-    fetchFavoritos();
+    fetchFavoritos(); // Cargar favoritos al montar el componente
   }, [fetchFavoritos]);
 
   // alternar like - Optimistic Update
@@ -127,7 +131,7 @@ export default function ColeccionDetallePage() {
         : [...prev, actividadId]
     );
 
-    // Hacer el fetch en background (sin await)
+    // Hacer el fetch en background (sin await) porque ya actualizamos el estado optimisticamente
     fetch(`/api/comunidad/actividades/${actividadId}/like`, {
       method: "POST",
     })
@@ -138,8 +142,10 @@ export default function ColeccionDetallePage() {
       });
   };
 
-  const toggleExpand = (id: string) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  // Funcion para manejar la expansión de la descripción
+  const toggleExpand = (id: string) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] })); 
 
+  // Función para abrir el modal de imágenes y establecer la imagen actual
   const toggleModal = (imagenes: Archivo[], index: number) => {
     setImagenes(imagenes);
     setCurrentIndex(index);
@@ -359,8 +365,8 @@ export default function ColeccionDetallePage() {
               <ComentarioInput
                 actividadId={act.id}
                 onNuevoComentario={async () => {
-                  const count = await fetchComentariosCount(act.id);
-                  actualizarComentarios(act.id, count);
+                  const count = await fetchComentariosCount(act.id); // Obtenemos el nuevo conteo de comentarios después de agregar uno
+                  actualizarComentarios(act.id, count); // Actualizamos el estado con el nuevo conteo de comentarios
                 }}
               />
             </div>
@@ -381,7 +387,8 @@ export default function ColeccionDetallePage() {
           actividad={actividadSeleccionada}
           onClose={() => setActividadSeleccionada(null)}
           onActualizarComentarios={async () => {
-            const count = await fetchComentariosCount(actividadSeleccionada.id);
+            // Actualizamos el conteo de comentarios después de que el usuario agregue uno
+            const count = await fetchComentariosCount(actividadSeleccionada.id); 
             actualizarComentarios(actividadSeleccionada.id, count);
           }}
         />
@@ -394,7 +401,7 @@ export default function ColeccionDetallePage() {
             setModalColeccionesOpen(false);
             setActividadParaColeccion(null);
           }}
-          actividadId={actividadParaColeccion}
+          actividadId={actividadParaColeccion} // ID de la actividad a la que se quiere agregar a las colecciones
         />
       )}
     </div>

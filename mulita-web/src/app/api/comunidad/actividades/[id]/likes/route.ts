@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// GET: Devuelve la cantidad de likes (usuarios que tienen la actividad en favoritos) para una actividad específica
 export async function GET(
   req: NextRequest,
   props: { params: Promise<{ id: string }> }
@@ -13,8 +14,8 @@ export async function GET(
     // Esto se hace buscando en coleccion_actividad donde actividad_id = actividadId
     const { data: likes, error } = await supabase
       .from("coleccion_actividad")
-      .select("coleccion_id", { count: "exact" })
-      .eq("actividad_id", actividadId);
+      .select("coleccion_id", { count: "exact" }) // Contar registros exactos
+      .eq("actividad_id", actividadId); // Filtrar por la actividad especificada
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

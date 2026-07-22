@@ -42,8 +42,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const { nombre, tipo } = await req.json();
+  const { nombre, tipo } = await req.json(); // Obtener nombre y tipo desde el cuerpo de la solicitud
 
+  // Validar que se reciban los datos necesarios
   const { data, error } = await supabase
     .from("categoria")
     .insert({ nombre, tipo })

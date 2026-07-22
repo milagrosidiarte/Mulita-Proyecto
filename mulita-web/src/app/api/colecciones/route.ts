@@ -51,14 +51,14 @@ export async function POST(req: NextRequest) {
   if (userError || !user)
     return NextResponse.json({ error: "Token inválido" }, { status: 401 });
 
-  const { nombre } = await req.json();
+  const { nombre } = await req.json(); // Obtener el nombre de la colección desde el cuerpo de la solicitud
 
   if (!nombre)
     return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
 
   const { data, error } = await supabase
     .from("coleccion")
-    .insert({ nombre, usuario_id: user.id })
+    .insert({ nombre, usuario_id: user.id }) // Insertar la nueva colección con el nombre y el ID del usuario autenticado
     .select()
     .single();
 

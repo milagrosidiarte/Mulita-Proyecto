@@ -6,6 +6,8 @@ import SkeletonMisionVision from "@/components/ui/dashboard/skeletons/SkeletonMi
 import { uploadFile } from "@/lib/subirArchivos";
 import toast from "react-hot-toast"
 
+// Definimos la función para la página de gestión de "Misión y Visión", que incluye la funcionalidad 
+// para editar los títulos, descripciones e imágenes de la sección
 export default function GestionMisionVisionPage() {
   const router = useRouter();
 
@@ -55,9 +57,10 @@ export default function GestionMisionVisionPage() {
     setSubmitting(true);
 
     try {
-      let nuevaUrlImagen1: string | null = typeof imagen1 === "string" ? imagen1 : null;
-      let nuevaUrlImagen2: string | null = typeof imagen2 === "string" ? imagen2 : null;
+      let nuevaUrlImagen1: string | null = typeof imagen1 === "string" ? imagen1 : null; // Si la imagen es un string (URL), la mantenemos; si es un archivo, la subiremos
+      let nuevaUrlImagen2: string | null = typeof imagen2 === "string" ? imagen2 : null; 
       
+      // Subir imagen1 si es un archivo
       if (imagen1 instanceof File) {
         try {
           const sanitizedFileName = sanitizeFileName(imagen1.name);
@@ -86,6 +89,7 @@ export default function GestionMisionVisionPage() {
         }
       }
 
+      // Enviar los datos actualizados a la API
       const res = await fetch("/api/sobreNosotros/misionVision", {
         method: "PATCH",
         headers: {

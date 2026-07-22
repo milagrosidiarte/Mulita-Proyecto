@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { uploadFile } from "@/lib/subirArchivos";
 import { toast } from "react-hot-toast"
 
+// Definimos la interfaz para el tipo de datos de un archivo subido, que incluye propiedades como URL, nombre y tipo de archivo
 interface ArchivoSubido {
   url: string;
   name: string;
   type: string;
 }
 
+// Definimos la interfaz para los errores del formulario, que incluye propiedades opcionales para cada campo del formulario
 interface ErroresFormulario {
   titulo?: string;
   autor?: string;
@@ -19,6 +21,9 @@ interface ErroresFormulario {
   imagen_principal?: string;
 }
 
+// Definimos la función para la página de creación de noticias, 
+// que incluye la funcionalidad para subir una imagen 
+// y enviar los datos del formulario a la API
 export default function CrearNoticiaPage() {
   const router = useRouter();
   const [titulo, setTitulo] = useState("");
@@ -47,18 +52,20 @@ export default function CrearNoticiaPage() {
 
     // Validación de imagen
     if (!imagen_principal) nuevosErrores.imagen_principal = "La imagen es obligatoria";
-    if (imagen_principal instanceof File) {
-      if (!imagen_principal.type.startsWith("image/")) {
+    if (imagen_principal instanceof File) { // Si la imagen es un archivo, verificamos que sea una imagen válida
+      if (!imagen_principal.type.startsWith("image/")) { // Verificamos que el tipo de archivo sea una imagen
         nuevosErrores.imagen_principal = "El archivo debe ser una imagen válida";
       }
     }
 
+    // Si hay errores, los mostramos y no enviamos el formulario
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length > 0) return;
 
     try {
-      const archivoSubido: ArchivoSubido[] = [];
+      const archivoSubido: ArchivoSubido[] = []; // Array para almacenar la información del archivo subido
 
+      // Si la imagen principal es un archivo, subimos el archivo y obtenemos la URL
       if (imagen_principal instanceof File) {
         try {
           const sanitizedFileName = sanitizeFileName(imagen_principal.name);

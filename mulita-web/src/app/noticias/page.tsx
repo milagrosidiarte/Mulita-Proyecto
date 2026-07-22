@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useUser } from "@/hooks/queries";
 import { SkeletonNoticias } from "@/components/ui/inicio/skeletons/SkeletonNoticias";
 
+// Definición de la interfaz Noticia para tipar los datos de las noticias
 interface Noticia {
   id: number;
   titulo: string;
@@ -16,6 +17,7 @@ interface Noticia {
   created_at: string;
 }
 
+// Componente principal de la página de noticias
 export default function NoticiasPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [noticias, setNoticias] = useState<Noticia[]>([]);
@@ -27,7 +29,7 @@ export default function NoticiasPage() {
       try {
         const res = await fetch("/api/noticias");
         const data = await res.json();
-        const noticiasArray = Array.isArray(data) ? data : (data?.noticias || []);
+        const noticiasArray = Array.isArray(data) ? data : (data?.noticias || []); // Asegurarse de que sea un array
         setNoticias(noticiasArray.reverse()); // Las más recientes primero
       } catch (err) {
         console.error("Error fetching noticias:", err);

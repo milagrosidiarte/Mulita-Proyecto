@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
+// GET: Devuelve todas las noticias destacadas para la página de inicio
 export async function GET() {
   const { data, error } = await supabase
     .from("noticia")

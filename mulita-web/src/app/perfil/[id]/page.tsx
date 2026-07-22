@@ -9,6 +9,7 @@ import ActividadesUsuario from "@/components/ui/perfil/ActividadesUsuario";
 import ColeccionesUsuario from "@/components/ui/perfil/ColeccionesUsuario";
 import SkeletonPerfil from "@/components/ui/perfil/skeletons/SkeletonPerfil";
 
+// Definición de la interfaz Usuario para tipar los datos del usuario
 interface Usuario {
   id: string;
   nombre: string;
@@ -17,23 +18,25 @@ interface Usuario {
   rol: string;
 }
 
+// Definición de la interfaz Perfil para tipar los datos del perfil
 interface Perfil {
   biografia: string;
   imagen: string;
   usuario: Usuario;
 }
 
+// Componente principal de la página de perfil
 export default function PerfilPage() {
-  const { id } = useParams();
-  const { user, logout } = useUser();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { id } = useParams(); // Obtener el ID del perfil desde los parámetros de la URL
+  const { user, logout } = useUser(); // Obtener el usuario actual y la función de cierre de sesión desde el hook useUser
+  const router = useRouter(); // Obtener el objeto router para la navegación programática
+  const searchParams = useSearchParams(); // Obtener los parámetros de búsqueda de la URL para determinar la vista actual (actividades, colecciones o favoritos)
 
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [loading, setLoading] = useState(true);
   const [vista, setVista] = useState<"colecciones" | "actividades" | "favoritos">("actividades");
 
-  const [mostrarInput, setMostrarInput] = useState(false);
+  const [mostrarInput, setMostrarInput] = useState(false); // Estado para controlar la visibilidad del input de nueva colección
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [mensajeError, setMensajeError] = useState("");
 
@@ -43,8 +46,9 @@ export default function PerfilPage() {
     if (vistaParam === "actividades" || vistaParam === "colecciones" || vistaParam === "favoritos") {
       setVista(vistaParam);
     }
-  }, [searchParams]);
+  }, [searchParams]); // Dependencia de searchParams para actualizar la vista cuando cambie la URL
 
+  // Traer datos del perfil desde la API
   useEffect(() => {
     const fetchPerfil = async () => {
       try {
@@ -74,8 +78,10 @@ export default function PerfilPage() {
       </div>
     );
 
+  // Determinar si el usuario actual es el propietario del perfil
   const esPropietario = user?.id === perfil.usuario.id;
 
+  //  Función para crear una nueva colección
   const handleCrearColeccion = async () => {
     if (!nuevoNombre.trim()) {
       setMensajeError("El nombre no puede estar vacío.");
@@ -87,17 +93,17 @@ export default function PerfilPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombre: nuevoNombre.trim(),
-          usuario_id: perfil.usuario.id,
+          nombre: nuevoNombre.trim(), // Trim para eliminar espacios en blanco al inicio y al final
+          usuario_id: perfil.usuario.id, // ID del usuario propietario del perfil
         }),
       });
 
       if (!res.ok) throw new Error("Error al crear la colección");
 
-      const nueva = await res.json();
-      console.log("Colección creada:", nueva);
+      const nueva = await res.json(); // Obtener la respuesta de la API con los datos de la nueva colección
+      console.log("Colección creada:", nueva); // Log para verificar que la colección se creó correctamente
 
-      setNuevoNombre("");
+      setNuevoNombre(""); // Limpiar el input después de crear la colección
       setMensajeError("");
       setMostrarInput(false);
       router.refresh();
@@ -260,15 +266,15 @@ export default function PerfilPage() {
       {/* Contenido dinámico */}
       <div className="w-full text-left px-[170px] pb-25">
         {vista === "actividades" ? (
-          <ActividadesUsuario usuarioId={perfil.usuario.id} perfilImagen={perfil.imagen} />
+          <ActividadesUsuario usuarioId={perfil.usuario.id} perfilImagen={perfil.imagen} /> // Renderizar actividades del usuario
         ) : vista === "colecciones" ? (
-          <ColeccionesUsuario userPerfilId={perfil.usuario.id} />
+          <ColeccionesUsuario userPerfilId={perfil.usuario.id} /> // Renderizar colecciones del usuario
         ) : (
           <ActividadesUsuario
             usuarioId={perfil.usuario.id}
             perfilImagen={perfil.imagen}
             mostrarSoloFavoritos
-          />
+          /> // Renderizar solo actividades favoritas del usuario
         )}
       </div>
     </div>

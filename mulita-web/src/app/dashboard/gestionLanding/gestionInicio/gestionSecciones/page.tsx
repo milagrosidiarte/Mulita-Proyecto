@@ -3,19 +3,24 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
+// Definimos la interfaz para una sección, que incluye su id, nombre y orden
 interface Seccion {
   id: number;
   nombre: string;
   orden: number;
 }
 
+// Definimos la función para la página de gestión de secciones, 
+// que incluye la lista de secciones y la funcionalidad para arrastrar y soltar para cambiar el orden
 export default function GestionSeccionesPage() {
-  const [secciones, setSecciones] = useState<Seccion[]>([]);
+  const [secciones, setSecciones] = useState<Seccion[]>([]); 
 
+  // Cargar secciones desde la API al montar el componente
   useEffect(() => {
     fetchSecciones();
   }, []);
 
+  // Función para traer las secciones desde la API y actualizar el estado
   async function fetchSecciones() {
     const res = await fetch("/api/inicio/secciones");
     const data = await res.json();
@@ -23,27 +28,28 @@ export default function GestionSeccionesPage() {
   }
 
   // Guardar nuevo orden en la base de datos
-  async function actualizarOrden(seccionesActualizadas: Seccion[]) {
-    for (let i = 0; i < seccionesActualizadas.length; i++) {
-      const sec = seccionesActualizadas[i];
-      await fetch(`/api/inicio/secciones/${sec.id}`, {
+  async function actualizarOrden(seccionesActualizadas: Seccion[]) { // Actualizar el orden de las secciones en la base de datos
+    for (let i = 0; i < seccionesActualizadas.length; i++) { // Iterar sobre las secciones actualizadas
+      const sec = seccionesActualizadas[i]; //  Obtener la sección actual
+      await fetch(`/api/inicio/secciones/${sec.id}`, { // Hacer un PATCH a la API para actualizar el orden de la sección
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orden: i + 1 })
+        body: JSON.stringify({ orden: i + 1 }) // Enviar el nuevo orden (i + 1) al backend
       });
     }
     fetchSecciones();
   }
 
-  function handleDragEnd(result: DropResult) {
-    if (!result.destination) return;
+  // Manejar el evento de arrastrar y soltar para reordenar las secciones
+  function handleDragEnd(result: DropResult) { 
+    if (!result.destination) return; // Si no hay destino, no hacer nada
 
-    const items = Array.from(secciones);
-    const [reordenado] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reordenado);
+    const items = Array.from(secciones); // Crear una copia del array de secciones
+    const [reordenado] = items.splice(result.source.index, 1); // Remover la sección arrastrada del array
+    items.splice(result.destination.index, 0, reordenado); // Insertar la sección arrastrada en la nueva posición
 
-    setSecciones(items);
-    actualizarOrden(items);
+    setSecciones(items); // Actualizar el estado con el nuevo orden de secciones
+    actualizarOrden(items); // Llamar a la función para actualizar el orden en la base de datos
   }
 
   return (
@@ -62,7 +68,7 @@ export default function GestionSeccionesPage() {
 
       {/* Lista de secciones */}
       <div className="flex-1 w-full max-w-[1103px] mt-10 flex flex-col gap-4">
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DragDropContext onDragEnd={handleDragEnd}> 
           <Droppable droppableId="secciones">
             {(provided) => (
               <div

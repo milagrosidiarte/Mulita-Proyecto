@@ -5,12 +5,14 @@ import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-hot-toast"
 import { uploadFile } from "@/lib/subirArchivos";
 
+// Definimos la interfaz para el tipo de datos de un archivo subido, que incluye propiedades como URL, nombre y tipo de archivo
 interface ArchivoSubido {
   url: string;
   name: string;
   type: string;
 }
 
+// Definimos la interfaz para los errores del formulario, que incluye propiedades opcionales para cada campo del formulario
 interface ErroresFormulario {
   titulo?: string;
   autor?: string;
@@ -19,16 +21,17 @@ interface ErroresFormulario {
   imagen_principal?: string;
 }
 
+// Componente principal de la página de edición de noticias
 export default function EditarNoticiaPage() {
-  const params = useParams();
+  const params = useParams(); // Obtenemos los parámetros de la URL, incluyendo el ID de la noticia a editar
   const router = useRouter();
 
   const [titulo, setTitulo] = useState("");
   const [autor, setAutor] = useState("");
   const [introduccion, setIntroduccion] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [imagen_principal, setImagenPrincipal] = useState<File | string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [imagen_principal, setImagenPrincipal] = useState<File | string | null>(null); // Puede ser un archivo (File) o una URL (string)
+  const [loading, setLoading] = useState(true); 
   const [submitting, setSubmitting] = useState(false);
   const [errores, setErrores] = useState<ErroresFormulario>({});
 
@@ -53,8 +56,9 @@ export default function EditarNoticiaPage() {
     };
 
     fetchNoticia();
-  }, [params.id]);
+  }, [params.id]); // Dependencia de params.id para recargar si cambia el ID
 
+  // Función para sanitizar el nombre del archivo, eliminando caracteres especiales y reemplazándolos por guiones bajos
   function sanitizeFileName(fileName: string) {
     return fileName
       .normalize("NFD")
@@ -62,10 +66,12 @@ export default function EditarNoticiaPage() {
       .replace(/[^a-zA-Z0-9.\-_]/g, "_");
   }
 
+  // Función para manejar el envío del formulario
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
+    // Validación de campos del formulario
     const nuevosErrores: ErroresFormulario = {};
     if (!titulo.trim()) nuevosErrores.titulo = "El título es obligatorio";
     if (!autor.trim()) nuevosErrores.autor = "El autor es obligatorio";
@@ -79,12 +85,14 @@ export default function EditarNoticiaPage() {
       }
     }
 
+    // Actualizamos el estado de errores y detenemos la ejecución si hay errores
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length > 0) return;
 
     try {
-      const archivoSubido: ArchivoSubido[] = [];
+      const archivoSubido: ArchivoSubido[] = []; // Array para almacenar información sobre los archivos subidos
             
+      // Si la imagen principal es un archivo (File), procedemos a subirla
       if (imagen_principal instanceof File) {
         try {
           const sanitizedFileName = sanitizeFileName(imagen_principal.name);
@@ -103,13 +111,15 @@ export default function EditarNoticiaPage() {
         }
       }
 
+      // Determinar la nueva URL de la imagen principal
       const nuevaUrlImagen =
       archivoSubido.length > 0
-        ? archivoSubido[0].url
-        : typeof imagen_principal === "string"
-        ? imagen_principal
-        : null;
+        ? archivoSubido[0].url // Si se subió un archivo, usamos la URL del primer archivo subido
+        : typeof imagen_principal === "string" // Si imagen_principal es una cadena (URL), la usamos directamente
+        ? imagen_principal 
+        : null; // Si no hay imagen, establecemos como null
 
+      // Enviar la solicitud PATCH para actualizar la noticia en el backend
       const res = await fetch(`/api/noticias/${params.id}`, {
         method: "PATCH",
         headers: {
@@ -140,6 +150,7 @@ export default function EditarNoticiaPage() {
     }
   };
 
+  // Función para manejar la cancelación de la edición, redirigiendo al usuario a la página de gestión de noticias
   const handleCancel = () => {
     router.push("/dashboard/gestionLanding/gestionNoticias");
   }

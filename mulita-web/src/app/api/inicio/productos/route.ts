@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// GET: Devuelve todos los productos destacados para la página de inicio
 export async function GET() {
   const { data, error } = await supabase
     .from("producto")

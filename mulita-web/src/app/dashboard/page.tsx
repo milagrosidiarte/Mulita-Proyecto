@@ -5,15 +5,17 @@ import { useEffect, useState } from "react";
 import { useUser } from "@/hooks/queries";
 import UserRoleBadge from "@/components/ui/dashboard/UserRoleBadge";
 
+// Definimos la función para la página principal del dashboard, que incluye un resumen de estadísticas y un mensaje de bienvenida al usuario
 export default function DashboardPage() {
-  const { user, isLoading: userLoading } = useUser();
-  const [stats, setStats] = useState({
+  const { user, isLoading: userLoading } = useUser(); // Hook personalizado para obtener la información del usuario actual
+  const [stats, setStats] = useState({ // Estado inicial de las estadísticas
     usuarios: { total: 0, nuevos: 0 },
     actividades: { total: 0, nuevas: 0 },
     pedidos: { total: 0, nuevos: 0 },
   });
   const [loading, setLoading] = useState(true);
 
+  // Función para obtener las estadísticas desde la API del dashboard
   const fetchStats = async () => {
     try {
       const response = await fetch("/api/dashboard/stats", {
@@ -34,7 +36,7 @@ export default function DashboardPage() {
     fetchStats();
     // Recargar cada 5 segundos para detectar cambios más rápido
     const interval = setInterval(fetchStats, 5 * 1000);
-    return () => clearInterval(interval);
+    return () => clearInterval(interval); // Limpiar el intervalo al desmontar el componente
   }, []);
 
   return (
@@ -140,7 +142,7 @@ export default function DashboardPage() {
   );
 }
 
-/* 🔹 Componente reutilizable para cada card */
+/* Componente reutilizable para cada card */
 function Card({
   title,
   value,

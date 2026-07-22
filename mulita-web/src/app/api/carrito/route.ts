@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       throw carritoError;
     }
 
-    if (!carrito) {
+    if (!carrito) { // Si no existe un carrito, devolver un carrito vacío
       return NextResponse.json({ carrito: null, items: [] }, { status: 200 });
     }
 
@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
       const productoIds = items.map(item => item.producto_id);
       console.log("Buscando productos con IDs:", productoIds);
       
+      // Obtener los productos correspondientes a los items del carrito
       const { data: productos, error: productosError } = await supabaseServer
         .from("producto")
         .select(`
@@ -62,10 +63,12 @@ export async function GET(req: NextRequest) {
       console.log("Productos encontrados:", productos);
       console.log("Error de productos:", productosError);
 
+      // Mapear cada item del carrito para agregarle los datos del producto correspondiente
       itemsConProducto = items.map(item => {
         const producto = productos?.find(p => p.id === item.producto_id);
         const imagenUrl = producto?.producto_archivos?.[0]?.archivo_url || null;
         
+        // Devolver el item del carrito con los datos del producto correspondiente (si existe)
         return {
           ...item,
           producto: producto ? {
@@ -79,6 +82,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Devolver el carrito y los items con datos de productos
     return NextResponse.json({
       carrito,
       items: itemsConProducto,
@@ -92,7 +96,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Agregar item al carrito
+
+// Agregar item al carrito POST
 export async function POST(req: NextRequest) {
   try {
     const cookieStore = await cookies();
@@ -109,10 +114,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const userId = user.id;
+    const userId = user.id; // Obtener el ID del usuario autenticado
 
+    // Obtener los datos del item a agregar al carrito desde el cuerpo de la solicitud
     const { producto_id, cantidad, precio } = await req.json();
 
+    // Validar que se reciban los datos necesarios
     if (!producto_id || !cantidad || !precio) {
       return NextResponse.json(
         { error: "Datos incompletos" },
@@ -133,6 +140,7 @@ export async function POST(req: NextRequest) {
 
     console.log("POST - Carrito encontrado:", carrito?.id);
 
+    // Si no existe un carrito, crear uno nuevo
     if (!carrito) {
       console.log("POST - Creando carrito para usuario:", userId);
       const { data: nuevoCarrito, error: crearError } = await supabaseServer
@@ -164,8 +172,8 @@ export async function POST(req: NextRequest) {
       // Actualizar cantidad
       const { error: updateError } = await supabaseServer
         .from("carrito_items")
-        .update({ cantidad: existingItem.cantidad + cantidad })
-        .eq("id", existingItem.id);
+        .update({ cantidad: existingItem.cantidad + cantidad }) // 
+        .eq("id", existingItem.id); // Actualizar la cantidad sumando la nueva cantidad a la existente
 
       if (updateError) throw updateError;
     } else {
@@ -195,6 +203,7 @@ export async function POST(req: NextRequest) {
       items?.reduce((sum, item) => sum + item.precio * item.cantidad, 0) || 0;
     const newCantidad = items?.reduce((sum, item) => sum + item.cantidad, 0) || 0;
 
+    // Actualizar total y cantidad de items en el carrito
     await supabaseServer
       .from("carritos")
       .update({
@@ -217,10 +226,12 @@ export async function POST(req: NextRequest) {
         `)
         .in("id", productoIds);
 
+      // Mapear cada item del carrito para agregarle los datos del producto correspondiente
       itemsConProducto = items.map(item => {
         const producto = productos?.find(p => p.id === item.producto_id);
         const imagenUrl = producto?.producto_archivos?.[0]?.archivo_url || null;
         
+        // Devolver el item del carrito con los datos del producto correspondiente (si existe)
         return {
           ...item,
           producto: producto ? {

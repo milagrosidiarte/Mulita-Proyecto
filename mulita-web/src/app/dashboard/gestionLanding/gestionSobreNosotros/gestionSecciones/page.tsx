@@ -3,19 +3,24 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
+// Definimos la interfaz para una sección, que incluye su id, nombre y orden
 interface Seccion {
   id: number;
   nombre: string;
   orden: number;
 }
 
+// Definimos la función para la página de gestión de secciones de la página "Sobre Nosotros", 
+// que incluye la funcionalidad para arrastrar y organizar el orden de las secciones
 export default function GestionSeccionesPage() {
   const [secciones, setSecciones] = useState<Seccion[]>([]);
 
+  // Traer secciones desde la API al montar el componente
   useEffect(() => {
     fetchSecciones();
   }, []);
 
+  // Función para obtener las secciones desde la API y actualizar el estado
   async function fetchSecciones() {
     const res = await fetch("/api/sobreNosotros/secciones");
     const data = await res.json();
@@ -25,7 +30,7 @@ export default function GestionSeccionesPage() {
   // Guardar nuevo orden en la base de datos
   async function actualizarOrden(seccionesActualizadas: Seccion[]) {
     for (let i = 0; i < seccionesActualizadas.length; i++) {
-      const sec = seccionesActualizadas[i];
+      const sec = seccionesActualizadas[i]; // Actualizamos el orden de cada sección en la base de datos según su nueva posición en el array
       await fetch(`/api/sobreNosotros/secciones/${sec.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -35,12 +40,13 @@ export default function GestionSeccionesPage() {
     fetchSecciones();
   }
 
+  // Función para manejar el evento de arrastrar y soltar, actualizando el estado y la base de datos con el nuevo orden de las secciones
   function handleDragEnd(result: DropResult) {
-    if (!result.destination) return;
+    if (!result.destination) return; // Si no hay destino, no hacemos nada
 
-    const items = Array.from(secciones);
-    const [reordenado] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reordenado);
+    const items = Array.from(secciones); // Creamos una copia del array de secciones para poder modificarlo
+    const [reordenado] = items.splice(result.source.index, 1); // Removemos el elemento arrastrado de su posición original
+    items.splice(result.destination.index, 0, reordenado); // Insertamos el elemento arrastrado en su nueva posición
 
     setSecciones(items);
     actualizarOrden(items);

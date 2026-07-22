@@ -3,8 +3,8 @@ import { CartProvider } from "@/context/CartContext";
 
 export default function Carrito() {
   return (
-    <CartProvider>
-      <CarritoPage />
+    <CartProvider> { /* Proporciona el contexto del carrito a todos los componentes hijos */ }
+      <CarritoPage /> { /* Renderiza la página del carrito de compras */ }
     </CartProvider>
   );
 }

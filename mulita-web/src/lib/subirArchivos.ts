@@ -4,7 +4,7 @@ import { supabase } from "./supabase";
 export async function uploadFile(file: File, folder: string) {
   try {
     console.log("Llegue a subirArchivos");
-    const arrayBuffer = await file.arrayBuffer(); // lee el archivo completo en memoria como un ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer(); // lee el archivo completo en memoria como un ArrayBuffer. Un buffer es un tipo de dato que representa una cantidad fija de memoria contigua, y es útil para manejar datos binarios como archivos.
     const buffer = Buffer.from(arrayBuffer); // convierte el ArrayBuffer a un Buffer de Node.js, que es lo que Supabase Storage espera
 
     // Nombre único para evitar sobreescritura
@@ -15,7 +15,7 @@ export async function uploadFile(file: File, folder: string) {
       .from("mulita-files") // bucket único
       .upload(`${folder}/${fileName}`, buffer, {
         contentType: file.type, // tipo MIME del archivo
-        cacheControl: "3600",
+        cacheControl: "3600", // tiempo de cache en segundos
         upsert: false, // no sobreescribir archivos existentes
       });
 
@@ -24,10 +24,10 @@ export async function uploadFile(file: File, folder: string) {
     // Obtener URL pública
     const { data: publicData } = supabase.storage
       .from("mulita-files")
-      .getPublicUrl(`${folder}/${fileName}`);
+      .getPublicUrl(`${folder}/${fileName}`); // Obtiene la URL pública del archivo subido para poder acceder a él desde cualquier lugar
 
     console.log("publicURL: ", publicData.publicUrl)
-    return publicData.publicUrl;
+    return publicData.publicUrl; // Devuelve la URL pública del archivo subido
   } catch (err: any) {
     console.error("Error subiendo archivo:", err.message);
     throw new Error(err.message);

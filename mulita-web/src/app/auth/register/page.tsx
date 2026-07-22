@@ -6,36 +6,40 @@ import PhoneInputWithCountry from "@/components/PhoneInputWithCountry";
 import { Country, State, City, IState, ICity } from "country-state-city";
 import Select from "react-select";
 
+// Componente de la página de registro de usuario
 export default function RegisterPage() {
-  const [esDocente, setEsDocente] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [telefono, setTelefono] = useState("");
+  const [esDocente, setEsDocente] = useState(false); // Estado para determinar si el usuario es docente o no
+  const [loading, setLoading] = useState(false); 
+  const [telefono, setTelefono] = useState(""); // Estado para almacenar el número de teléfono ingresado por el usuario
 
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [ListaProvincias, setListaProvincias] = useState<IState[]>([]);
-  const [ListaCiudades, setListaCiudades] = useState<ICity[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<string>(""); // Estado para almacenar el país seleccionado por el usuario
+  const [selectedState, setSelectedState] = useState<string>(""); // Estado para almacenar la provincia/estado seleccionado por el usuario
+  const [ListaProvincias, setListaProvincias] = useState<IState[]>([]); // Estado para almacenar la lista de provincias/estados del país seleccionado
+  const [ListaCiudades, setListaCiudades] = useState<ICity[]>([]); // Estado para almacenar la lista de ciudades del país y provincia/estado seleccionado
 
-  const formRef = useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLFormElement>(null); // Referencia al formulario para poder resetearlo después de un registro exitoso
 
+  // Manejar el evento de presionar la tecla Enter para enviar el formulario
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !loading) {
       formRef.current?.requestSubmit();
     }
   }
-  const countryList = Country.getAllCountries();
+  const countryList = Country.getAllCountries(); // Obtener la lista de todos los países utilizando la librería country-state-city
 
+  // Crear un array de opciones para el componente Select a partir de la lista de países
   const countryOptions = countryList.map((c) => ({
     value: c.isoCode,
     label: c.name,
   }));
 
+  // Manejar el cambio de país seleccionado
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const isoCode = e.target.value;
-    const country = countryList.find(c => c.isoCode === isoCode);
+    const isoCode = e.target.value; // Obtener el código ISO del país seleccionado
+    const country = countryList.find(c => c.isoCode === isoCode); // Buscar el país seleccionado en la lista de países
 
-    if (!country) return;
-    setSelectedCountry(isoCode);
+    if (!country) return; // Si no se encuentra el país, salir de la función
+    setSelectedCountry(isoCode); // Actualizar el estado del país seleccionado
 
     // Cargar provincias/estados del país
     const states = State.getStatesOfCountry(isoCode);
@@ -53,14 +57,16 @@ export default function RegisterPage() {
     setListaCiudades(cities);
   };
 
+  // Función para manejar el envío del formulario de registro
   const onContinuarClick = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    const rol: "usuario" | "docente" = esDocente ? "docente" : "usuario";
+    const rol: "usuario" | "docente" = esDocente ? "docente" : "usuario"; // Determinar el rol del usuario según si es docente o no, el ? significa "si esDocente es true, entonces rol es 'docente', de lo contrario es 'usuario'"
 
+    // Obtener los datos del formulario utilizando FormData
     const formData = new FormData(e.currentTarget);
-    const nombre = formData.get("nombre")?.toString() ?? "";
+    const nombre = formData.get("nombre")?.toString() ?? ""; // Obtener el nombre del usuario desde el formulario, si no existe, asignar una cadena vacía
     const apellido = formData.get("apellido")?.toString() ?? "";
     const email = formData.get("email")?.toString() ?? "";
     const contrasena = formData.get("contrasena")?.toString() ?? "";
@@ -107,6 +113,7 @@ export default function RegisterPage() {
       return;
     }
 
+    // Crear un objeto con los datos del usuario para enviar al backend
     const data = {
       nombre,
       apellido,
@@ -133,9 +140,9 @@ export default function RegisterPage() {
 
       toast.success("Usuario registrado. Revisa tu email para confirmar tu cuenta.");
 
-      formRef.current?.reset();
-      setEsDocente(false);
-      setTelefono("");
+      formRef.current?.reset(); // Resetear el formulario después de un registro exitoso
+      setEsDocente(false); // Resetear el estado de esDocente a false
+      setTelefono(""); // Resetear el estado del teléfono a una cadena vacía
     } catch (err: any) {
       console.error(err);
       
@@ -150,8 +157,9 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
-  }, [esDocente, telefono]);
+  }, [esDocente, telefono]); // Dependencias del useCallback: esDocente y telefono, para que la función se actualice si estos cambian
 
+  // Clases CSS para los inputs y botones del formulario
   const inputClass =
     "w-full shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-lg border border-gray-300 h-10 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600";
 
@@ -207,9 +215,9 @@ export default function RegisterPage() {
               {/* Seleccionar provincia según país */}
               {ListaProvincias.length > 0 ? (
                 <Select
-                  options={ListaProvincias.map(p => ({ value: p.name, label: p.name }))}
+                  options={ListaProvincias.map(p => ({ value: p.name, label: p.name }))} // Crear opciones para el Select a partir de la lista de provincias
                   onChange={(option: any) => handleStateChange(option.value)}
-                  value={selectedState ? { value: selectedState, label: selectedState } : null}
+                  value={selectedState ? { value: selectedState, label: selectedState } : null} // Establecer el valor seleccionado en el Select según el estado seleccionado
                   placeholder="Provincia"
                 />
               ) : (

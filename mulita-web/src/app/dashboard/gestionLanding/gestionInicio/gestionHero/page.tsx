@@ -6,12 +6,14 @@ import SkeletonHero from "@/components/ui/dashboard/skeletons/SkeletonHero";
 import { uploadFile } from "@/lib/subirArchivos";
 import toast from "react-hot-toast"
 
+// Definimos la interfaz para el archivo subido, que incluye la URL del archivo, su nombre y tipo
 interface ArchivoSubido {
   url: string;
   name: string;
   type: string;
 }
 
+// Definimos la función para el hero, que incluye el título, descripción e imagen
 export default function GestionHeroPage() {
   const router = useRouter();
 
@@ -22,12 +24,12 @@ export default function GestionHeroPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Cargar noticia existente
+  // Cargar hero existente
     useEffect(() => {
       const fetchHero = async () => {
         try {
-          const res = await fetch("/api/inicio/hero");
-          if (!res.ok) throw new Error("Noticia no encontrada");
+          const res = await fetch("/api/inicio/hero"); 
+          if (!res.ok) throw new Error("Hero no encontrado");
           const data = await res.json();
   
           setTitulo(data.titulo);
@@ -50,14 +52,15 @@ export default function GestionHeroPage() {
       .replace(/[^a-zA-Z0-9.\-_]/g, "_");
   }
 
+  // Manejo de submit (PATCH) para actualizar el hero
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const archivoSubido: ArchivoSubido[] = [];
+      const archivoSubido: ArchivoSubido[] = []; // Array para almacenar los archivos subidos y sus URLs
 
-      if (imagen instanceof File) {
+      if (imagen instanceof File) { // Si la imagen es un archivo, subimos el archivo y obtenemos la URL
         try {
           const sanitizedFileName = sanitizeFileName(imagen.name);
           const filePath = `inicio/hero/${Date.now()}_${sanitizedFileName}`;
@@ -65,7 +68,7 @@ export default function GestionHeroPage() {
           // Subir archivo usando la función uploadFile
           const url = await uploadFile(imagen, filePath);
           
-          archivoSubido.push({
+          archivoSubido.push({ // Agregamos la URL del archivo subido al array
             url,
             name: imagen.name,
             type: imagen.type,
@@ -75,6 +78,7 @@ export default function GestionHeroPage() {
         }
       }
 
+      // Determinar la URL de la imagen a enviar al backend: si se subió un archivo, usamos su URL; si no, usamos la URL existente; si no hay ninguna, enviamos null
       const nuevaUrlImagen =
       archivoSubido.length > 0
         ? archivoSubido[0].url
@@ -110,6 +114,7 @@ export default function GestionHeroPage() {
     }
   };
 
+  // Manejo de cancelación, redirigiendo al usuario a la página de gestión de inicio
   const handleCancel = () => router.push("/dashboard/gestionLanding/gestionInicio");
 
   if (loading) return <SkeletonHero />;

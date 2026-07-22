@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// GET: Devuelve todos los comentarios de una actividad específica
 export async function POST(req: NextRequest) {
   const access_token = req.cookies.get("sb-access-token")?.value;
   if (!access_token)

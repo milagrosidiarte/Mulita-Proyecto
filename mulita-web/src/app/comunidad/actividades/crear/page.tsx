@@ -6,25 +6,29 @@ import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/subirArchivos";
 import { toast } from "react-hot-toast";
 
+// Tipos de datos
 interface Categoria {
   id: string;
   nombre: string;
   tipo?: "curso" | "dificultad" | "materia";
 }
 
+// Tipos de errores del formulario
 interface ErroresFormulario {
-  titulo?: string;
+  titulo?: string; 
   descripcion?: string;
   categorias?: string;
   archivo?: string;
 }
 
+// Tipos de archivos subidos
 interface ArchivoSubido {
   url: string;
   name: string;
   type: string;
 }
 
+// Componente de creación de actividad
 export default function CrearActividadPage() {
   const router = useRouter();
   const [titulo, setTitulo] = useState("");
@@ -35,52 +39,54 @@ export default function CrearActividadPage() {
   const [cargandoCategorias, setCargandoCategorias] = useState(true);
   const [errores, setErrores] = useState<ErroresFormulario>({});
 
-  const MAX_FILE_SIZE = 30 * 1024 * 1024;
+  const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB
 
   // Cargar categorías desde Supabase
   useEffect(() => {
     const fetchCategorias = async () => {
       const { data, error } = await supabase.from("categoria").select("id, nombre, tipo");
-      if (!error && data) setCategorias(data);
+      if (!error && data) setCategorias(data); 
       setCargandoCategorias(false);
     };
     fetchCategorias();
   }, []);
 
+  // Manejo de selección de categorías
   const handleCategoriaChange = (id: string) => {
-    const categoriaPulsada = categorias.find((c) => c.id === id);
+    const categoriaPulsada = categorias.find((c) => c.id === id); // Encontrar la categoría pulsada
     if (!categoriaPulsada) return;
 
     setCategoriasSeleccionadas((prev) => {
-      // Si ya está seleccionada, desseleccionar
+      // Si ya está seleccionada, deseleccionar
       if (prev.includes(id)) {
         return prev.filter((c) => c !== id);
       }
 
       // Si no está seleccionada, buscar si ya hay una del mismo tipo
       const categoriasDelMismoTipo = prev.filter(
-        (cId) => categorias.find((c) => c.id === cId)?.tipo === categoriaPulsada.tipo
+        (cId) => categorias.find((c) => c.id === cId)?.tipo === categoriaPulsada.tipo // Filtrar las categorías seleccionadas que sean del mismo tipo que la pulsada
       );
 
       // Si ya hay una del mismo tipo, reemplazarla; si no, agregar
       if (categoriasDelMismoTipo.length > 0) {
         // Reemplazar la anterior por la nueva
-        return prev
-          .filter((cId) => categorias.find((c) => c.id === cId)?.tipo !== categoriaPulsada.tipo)
-          .concat(id);
+        return prev 
+          .filter((cId) => categorias.find((c) => c.id === cId)?.tipo !== categoriaPulsada.tipo) // Filtrar las categorías seleccionadas que no sean del mismo tipo
+          .concat(id); // Agregar la nueva categoría
       }
 
       // Si no hay ninguna del mismo tipo, agregar
-      return [...prev, id];
+      return [...prev, id]; // Agregar la nueva categoría
     });
   };
 
-  // Manejo de archivos
+  // Manejo de cambio de archivos
   const handleArchivosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nuevosArchivos = e.target.files ? Array.from(e.target.files) : [];
-    setArchivos((prev) => [...prev, ...nuevosArchivos]);
+    const nuevosArchivos = e.target.files ? Array.from(e.target.files) : []; // Convertir FileList a Array
+    setArchivos((prev) => [...prev, ...nuevosArchivos]); // Agregar los nuevos archivos a los existentes
   };
 
+  // Manejo de eliminación de archivos
   const handleEliminarArchivo = (index: number) => {
     setArchivos((prev) => prev.filter((_, i) => i !== index));
   };
@@ -109,9 +115,10 @@ export default function CrearActividadPage() {
       nuevosErrores.archivo = `El archivo "${archivoGrande.name}" supera el límite de 30 MB.`;
     }
 
+    // Si hay errores, actualizar el estado y mostrar mensajes
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
-      if (nuevosErrores.archivo) toast.error(nuevosErrores.archivo);
+      if (nuevosErrores.archivo) toast.error(nuevosErrores.archivo); // Mostrar error de archivo si existe
       return;
     }
 
@@ -119,13 +126,13 @@ export default function CrearActividadPage() {
       // Subir archivos directamente a Supabase primero
       const archivosSubidos: ArchivoSubido[] = [];
       
-      for (const archivo of archivos) {
+      for (const archivo of archivos) { // Iterar sobre cada archivo seleccionado
         try {
-          const sanitizedFileName = sanitizeFileName(archivo.name);
-          const filePath = `comunidad/actividades/${Date.now()}_${sanitizedFileName}`;
+          const sanitizedFileName = sanitizeFileName(archivo.name); // Limpiar el nombre del archivo para evitar problemas con caracteres especiales
+          const filePath = `comunidad/actividades/${Date.now()}_${sanitizedFileName}`; // Crear un path único para cada archivo usando timestamp y nombre limpio
           
-          // Subir archivo usando la función uploadFile
-          const url = await uploadFile(archivo, filePath);
+          // Subir archivo usando la función uploadFile en src/lib/subirArchivos.ts
+          const url = await uploadFile(archivo, filePath); 
           
           archivosSubidos.push({
             url,
@@ -137,7 +144,7 @@ export default function CrearActividadPage() {
         }
       }
       
-      // Enviar todos los datos en una sola llamada
+      // Enviar todos los datos en una sola llamada porque ya tenemos las URLs de los archivos subidos
       const res = await fetch("/api/comunidad/actividades", {
         method: "POST",
         headers: {
@@ -149,7 +156,7 @@ export default function CrearActividadPage() {
           categorias: categoriasSeleccionadas,
           archivos: archivosSubidos,
         }),
-        credentials: "include",
+        credentials: "include", // Incluir cookies para autenticación
       });
 
       if (!res.ok) {
@@ -167,7 +174,8 @@ export default function CrearActividadPage() {
     }
   };
 
-  const handleCancel = () => router.push("/comunidad");
+  // Manejo de cancelación
+  const handleCancel = () => router.push("/comunidad"); // Redirigir a la página de comunidad al cancelar
 
   return (
     <div className="w-full bg-white min-h-screen flex flex-col items-center py-12 px-4 text-[#003c71]">
@@ -190,8 +198,8 @@ export default function CrearActividadPage() {
               type="text"
               value={titulo}
               onChange={(e) => {
-                setTitulo(e.target.value);
-                if (errores.titulo) setErrores({ ...errores, titulo: undefined });
+                setTitulo(e.target.value); // Actualizar el estado del título
+                if (errores.titulo) setErrores({ ...errores, titulo: undefined }); 
               }}
               className={`w-full border rounded-md shadow-sm px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none ${
                 errores.titulo ? "border-red-500" : "border-gray-300"

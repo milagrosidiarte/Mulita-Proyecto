@@ -28,8 +28,8 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   // Obtener valor actual
   const { data: noticiaActual, error: fetchError } = await supabase
     .from("noticia")
-    .select("mostrar_en_inicio")
-    .eq("id", params.id)
+    .select("mostrar_en_inicio") // Solo necesitamos el campo mostrar_en_inicio
+    .eq("id", params.id) // Filtrar por la noticia especificada
     .single();
 
   if (fetchError || !noticiaActual) {

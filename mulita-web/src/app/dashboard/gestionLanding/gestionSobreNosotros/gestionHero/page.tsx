@@ -43,6 +43,7 @@ export default function GestionHeroSobreNosotros() {
     fetchHero();
   }, []);
 
+  // Función para sanitizar el nombre del archivo, eliminando caracteres especiales y reemplazándolos por guiones bajos
   function sanitizeFileName(fileName: string) {
     return fileName
       .normalize("NFD")
@@ -50,17 +51,18 @@ export default function GestionHeroSobreNosotros() {
       .replace(/[^a-zA-Z0-9.\-_]/g, "_");
   }
 
+  // Función para manejar el envío del formulario, que incluye la subida de la imagen y la actualización del hero en la base de datos
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const archivoSubido: ArchivoSubido[] = [];
+      const archivoSubido: ArchivoSubido[] = []; // Array para almacenar la información del archivo subido
 
-      if (imagen instanceof File) {
+      if (imagen instanceof File) { // Si la imagen es un archivo, subimos el archivo y obtenemos la URL
         try {
           const sanitizedFileName = sanitizeFileName(imagen.name);
-          const filePath = `sobreNosotros/hero/${Date.now()}_${sanitizedFileName}`;
+          const filePath = `sobreNosotros/hero/${Date.now()}_${sanitizedFileName}`; // Creamos un path único para el archivo subido, incluyendo la fecha y hora actual para evitar colisiones de nombres
           
           // Subir archivo usando la función uploadFile
           const url = await uploadFile(imagen, filePath);
@@ -75,6 +77,8 @@ export default function GestionHeroSobreNosotros() {
         }
       }
 
+      // Determinar la URL de la imagen a enviar a la API, ya sea la nueva URL del archivo subido 
+      // o la URL existente si no se subió un nuevo archivo
       const nuevaUrlImagen =
       archivoSubido.length > 0
         ? archivoSubido[0].url
@@ -110,6 +114,7 @@ export default function GestionHeroSobreNosotros() {
     }
   };
 
+  // Función para manejar la cancelación del formulario, redirigiendo a la página de gestión de "Sobre Nosotros"
   const handleCancel = () => router.push("/dashboard/gestionLanding/gestionSobreNosotros");
 
   if (loading) return <SkeletonHero />;

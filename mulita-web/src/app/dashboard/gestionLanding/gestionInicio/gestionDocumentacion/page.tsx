@@ -27,6 +27,7 @@ interface ErroresDocumento {
   descripcion?: string;
 }
 
+// Opciones para el selector de tipo de documento
 const opcionesTipo = [
   { value: "link", label: "Link" },
   { value: "archivo", label: "Archivo" },
@@ -38,13 +39,13 @@ const opcionesTipo = [
 export default function GestionDocumentacion() {
   const router = useRouter();
 
-  const [titulo, setTitulo] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [documentos, setDocumentos] = useState<Documento[]>([]);
-  const [erroresDocs, setErroresDocs] = useState<ErroresDocumento[]>([]);
-  const [erroresGenerales, setErroresGenerales] = useState<{ titulo?: string; descripcion?: string }>({});
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [titulo, setTitulo] = useState(""); // Título principal de la sección de documentación
+  const [descripcion, setDescripcion] = useState(""); // Descripción principal de la sección de documentación
+  const [documentos, setDocumentos] = useState<Documento[]>([]); // Lista de documentos que se mostrarán y editarán en el frontend
+  const [erroresDocs, setErroresDocs] = useState<ErroresDocumento[]>([]); // Lista de errores específicos para cada documento, útil para validación y retroalimentación al usuario
+  const [erroresGenerales, setErroresGenerales] = useState<{ titulo?: string; descripcion?: string }>({}); // Errores generales para el título y la descripción principal, útil para validación y retroalimentación al usuario
+  const [loading, setLoading] = useState(true); // Indica si los datos de la documentación se están cargando desde el backend, útil para mostrar un indicador de carga al usuario
+  const [submitting, setSubmitting] = useState(false); // Indica si el formulario se está enviando al backend, útil para deshabilitar botones y mostrar un indicador de progreso al usuario
 
   // CARGA DE DATOS
   useEffect(() => {
@@ -55,24 +56,24 @@ export default function GestionDocumentacion() {
 
         const data = await res.json();
 
-        setTitulo(data.titulo || "");
-        setDescripcion(data.descripcion || "");
+        setTitulo(data.titulo || ""); // Si el backend no devuelve un título, se establece como cadena vacía
+        setDescripcion(data.descripcion || ""); // Lo mismo con la descripcion 
 
         // Mapeo de datos: Convertir la única 'url' del backend a los campos separados del frontend
         setDocumentos(
-          data.documentos?.map((doc: any) => ({
-            tipo: doc.tipo,
+          data.documentos?.map((doc: any) => ({ // Mapeo de cada documento recibido del backend a la estructura que el frontend espera
+            tipo: doc.tipo, // El tipo de documento
             // Mapeamos doc.url a los campos separados del frontend
-            link: doc.tipo === "link" ? doc.url : null,
-            archivo: doc.tipo === "archivo" ? doc.url : null,
+            link: doc.tipo === "link" ? doc.url : null, // Si el tipo es "link", usamos la url o null si no lo es
+            archivo: doc.tipo === "archivo" ? doc.url : null, 
             imagen: doc.tipo === "imagen" ? doc.url : null,
             
-            descripcion: doc.descripcion ?? "", // Coincide con el backend
-            nombre: doc.nombre ?? null, // Coincide con el backend
-          })) || []
+            descripcion: doc.descripcion ?? "", // Si el backend no devuelve una descripción, se establece como cadena vacía
+            nombre: doc.nombre ?? null, // Si el backend no devuelve un nombre, se establece como null
+          })) || [] // Si no hay documentos, se establece como un array vacío
         );
 
-        setErroresDocs((data.documentos || []).map(() => ({})));
+        setErroresDocs((data.documentos || []).map(() => ({}))); // Inicializamos los errores de cada documento como un objeto vacío, uno por cada documento recibido del backend
       } catch (err) {
         console.error("Error al cargar la documentación:", err);
         toast.error("Error al cargar la documentación");
@@ -88,8 +89,8 @@ export default function GestionDocumentacion() {
   const validarFormulario = () => {
     let valido = true;
 
-    const nuevosErroresGenerales: { titulo?: string; descripcion?: string } = {};
-    const nuevosErroresDocs: ErroresDocumento[] = documentos.map(() => ({}));
+    const nuevosErroresGenerales: { titulo?: string; descripcion?: string } = {}; // Inicializamos un objeto para almacenar errores generales del formulario, como el título y la descripción principal
+    const nuevosErroresDocs: ErroresDocumento[] = documentos.map(() => ({})); // Inicializamos un array de objetos para almacenar errores específicos de cada documento, uno por cada documento en el estado
 
     // Validar título
     if (!titulo.trim()) {
@@ -105,7 +106,7 @@ export default function GestionDocumentacion() {
 
     // Validación de documentos
     documentos.forEach((doc, i) => {
-      const errores: ErroresDocumento = {};
+      const errores: ErroresDocumento = {}; // Inicializamos un objeto para almacenar errores específicos del documento actual
 
       // Validación por tipo
       if (doc.tipo === "link") {
@@ -132,7 +133,7 @@ export default function GestionDocumentacion() {
         }
       }
 
-      nuevosErroresDocs[i] = errores;
+      nuevosErroresDocs[i] = errores; // Asignamos los errores encontrados para el documento actual al array de errores de documentos
     });
 
     setErroresGenerales(nuevosErroresGenerales);
@@ -142,20 +143,21 @@ export default function GestionDocumentacion() {
   };
 
 
-  const sanitizeFileName = (fileName: string) =>
+  // UTILIDADES
+  const sanitizeFileName = (fileName: string) => // Limpiar el nombre del archivo como eliminar acentos y caracteres especiales, reemplazándolos por guiones bajos
     fileName
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9.\-_]/g, "_");
 
   // MANEJO DE CAMBIOS
-  const handleDocChange = (index: number, field: keyof Documento, value: any) => {
-    const nuevosDocs = [...documentos];
-    const nuevosErrores = [...erroresDocs];
+  const handleDocChange = (index: number, field: keyof Documento, value: any) => { 
+    const nuevosDocs = [...documentos]; // Creamos una copia del estado de documentos para no mutar directamente el estado
+    const nuevosErrores = [...erroresDocs]; // Creamos una copia del estado de errores de documentos para no mutar directamente el estado
     // Resetear errores del documento
     nuevosErrores[index] = {};
 
-    let nuevoNombre = nuevosDocs[index].nombre;
+    let nuevoNombre = nuevosDocs[index].nombre; // Inicializamos el nuevo nombre con el valor actual del documento, para mantenerlo si no se cambia el archivo o imagen
     
     // Si se cambia el link, archivo o imagen, actualizamos el nombre si es un archivo
     if (field === 'archivo' || field === 'imagen') {
@@ -170,7 +172,7 @@ export default function GestionDocumentacion() {
     // Si se cambia el tipo, limpiamos los campos de URL irrelevantes
     if (field === 'tipo') {
         if (value === 'link') {
-            nuevosDocs[index].archivo = null;
+            nuevosDocs[index].archivo = null; // Si el tipo es link, limpiamos archivo e imagen
             nuevosDocs[index].imagen = null;
         } else if (value === 'archivo') {
             nuevosDocs[index].link = null;
@@ -182,14 +184,16 @@ export default function GestionDocumentacion() {
         nuevosDocs[index].nombre = null; // Reiniciamos el nombre al cambiar el tipo
     }
     
+    // Actualizamos el documento en la posición correspondiente con los nuevos valores y el nombre actualizado
     nuevosDocs[index] = { ...nuevosDocs[index], [field]: value, nombre: nuevoNombre };
-    setDocumentos(nuevosDocs);
+    setDocumentos(nuevosDocs); // Actualizamos el estado de documentos con la copia modificada
     setErroresDocs(nuevosErrores);
   };
 
+  // Agregar y eliminar documentos
   const agregarDocumento = () => {
     setDocumentos([
-      ...documentos,
+      ...documentos, // Mantenemos los documentos existentes
       { 
         tipo: "link", 
         link: "",
@@ -199,13 +203,16 @@ export default function GestionDocumentacion() {
         nombre: null,
       }
     ]);
-    setErroresDocs([...erroresDocs, {}]);
+    setErroresDocs([...erroresDocs, {}]); // Agregamos un objeto vacío para los errores del nuevo documento
   };
 
+  // Eliminar documento por índice, actualizando tanto la lista de documentos como la lista de errores correspondiente
   const eliminarDocumento = (index: number) => {
-    setDocumentos(documentos.filter((_, i) => i !== index));
+    setDocumentos(documentos.filter((_, i) => i !== index)); // Filtramos el documento a eliminar y actualizamos el estado de documentos 
+    // _ significa que no necesitamos el valor del documento, solo su índice, 
+    // i !== index significa que mantenemos todos los documentos excepto el que queremos eliminar
     setErroresDocs(erroresDocs.filter((_, i) => i !== index));
-  };
+  }; 
   
   // MANEJO DE SUBMIT (PATCH)
   const handleSubmit = async (e: React.FormEvent) => {
@@ -228,12 +235,14 @@ export default function GestionDocumentacion() {
         nombre: string | null;
       }
       
+      // Creamos un array para almacenar los documentos finales que se enviarán al backend, 
+      // transformando los datos del frontend a la estructura que el backend espera
       const documentosFinales: DocumentoParaBackend[] = [];
 
-      for (let i = 0; i < documentos.length; i++) {
-        const doc = documentos[i];
-        let finalUrl = "";
-        let finalNombre = doc.nombre;
+      for (let i = 0; i < documentos.length; i++) { // Iteramos sobre cada documento para procesarlo y transformarlo a la estructura que el backend espera
+        const doc = documentos[i]; // Obtenemos el documento actual
+        let finalUrl = ""; // Inicializamos la URL final que se enviará al backend
+        let finalNombre = doc.nombre; // Inicializamos el nombre final que se enviará al backend, que puede ser null si no se ha subido un archivo o imagen
 
         // Consolidar la URL y subir archivos si es necesario
         if (doc.tipo === "link" && doc.link) {
@@ -267,7 +276,7 @@ export default function GestionDocumentacion() {
 
       // Envío de datos
       const res = await fetch("/api/inicio/documentacion", {
-        method: "PATCH",
+        method: "PATCH", // actualizamos la documentación existente
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           titulo,

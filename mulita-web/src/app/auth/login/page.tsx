@@ -8,21 +8,23 @@ import { createClientSupabase } from "@/lib/supabase";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 
+// Componente de inicio de sesión
 export default function Login() {
   const [email, setEmail] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { user } = useUser();
-  const queryClient = useQueryClient();
+  const { user } = useUser(); // no se usa porque el queryClient.invalidateQueries se encarga de revalidar el query de usuario
+  const queryClient = useQueryClient(); // Para invalidar el query de usuario después de iniciar sesión
 
+  // Función para manejar el clic en el botón "Continuar"
   const onContinuarClick = async () => {
     setLoading(true);
 
     try {
       // 1. Autenticar con Supabase SDK en el frontend
-      const supabase = createClientSupabase();
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const supabase = createClientSupabase(); // Crear cliente Supabase en el frontend porque no se puede usar el cliente del backend directamente
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ // Autenticación con email y contraseña
         email,
         password: contrasena,
       });
@@ -40,6 +42,7 @@ export default function Login() {
         return;
       }
 
+      // Validar que se obtuvieron los datos de usuario y sesión
       if (!authData.user || !authData.session) {
         toast.error("No se pudo obtener la sesión");
         setLoading(false);
@@ -57,8 +60,10 @@ export default function Login() {
         credentials: "include",
       });
 
+      // Validar la respuesta del backend
       const data = await res.json();
 
+      // Si la respuesta no es ok o no tiene éxito, mostrar un error
       if (!res.ok || !data.success) {
         toast.error(data.message || "Error al validar la sesión");
         setLoading(false);
@@ -66,7 +71,7 @@ export default function Login() {
       }
 
       // 3. Invalidar el query de usuario para que se revalide
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] }); // Esto hará que useUser() se revalide y obtenga los datos del usuario recién autenticado
       
       // 4. Redirigimos al inicio
       toast.success("¡Sesión iniciada correctamente!");
@@ -79,6 +84,7 @@ export default function Login() {
     }
   };
 
+  // Función para manejar la tecla Enter en los inputs
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && email && contrasena && !loading) {
       onContinuarClick();

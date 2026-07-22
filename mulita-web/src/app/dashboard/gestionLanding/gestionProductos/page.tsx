@@ -7,6 +7,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { useUser } from "@/hooks/queries";
 import MenuAccionesProductos from "@/components/ui/tienda/MenuAccionesProductos";
 
+// Definimos la interfaz para un producto, que incluye su id, nombre y tipo de producto
 interface Producto {
   id: number;
   nombre: string;
@@ -20,6 +21,8 @@ const TIPOS_PRODUCTOS = [
   { id: "capacitacion", nombre: "Capacitación", color: "text-purple-800", bgColor: "bg-purple-100" }
 ];
 
+// Definimos la función para la página de gestión de productos, que incluye la lista de productos 
+// y la funcionalidad para filtrar por tipo de producto y eliminar productos
 export default function GestionproductosPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -34,11 +37,11 @@ export default function GestionproductosPage() {
         setLoadingProductos(true);
         let url = "/api/productos";
         if (tipoSeleccionado) {
-          url += `?tipo_producto=${tipoSeleccionado}`;
+          url += `?tipo_producto=${tipoSeleccionado}`; // Si hay un tipo seleccionado, agregamos el parámetro a la URL
         }
-        const res = await fetch(url);
+        const res = await fetch(url); // Hacemos la petición a la API para obtener los productos
         const data = await res.json();
-        const productosArray = Array.isArray(data) ? data : (data?.productos || []);
+        const productosArray = Array.isArray(data) ? data : (data?.productos || []); // Aseguramos que sea un array
         setProductos(productosArray.reverse()); // Las más recientes primero
       } catch (err) {
         console.error("Error fetching productos:", err);
@@ -48,24 +51,26 @@ export default function GestionproductosPage() {
       }
     };
     fetchProductos();
-  }, [tipoSeleccionado]);
+  }, [tipoSeleccionado]); // Llamamos a la función para traer los productos al montar el componente y cada vez que cambie el tipo seleccionado
 
   const handleEliminar = async (id: number) => {
     try {
       await fetch(`/api/productos/${id}`, { method: "DELETE" });
-      setProductos((prev) => prev.filter((n) => n.id !== id));
+      setProductos((prev) => prev.filter((n) => n.id !== id)); // Actualizamos el estado para eliminar el producto de la lista
       toast.success("Producto eliminado exitosamente");
-      setConfirmDelete(null);
+      setConfirmDelete(null); // Cerramos el diálogo de confirmación
     } catch (err) {
       console.error("Error eliminando producto:", err);
       toast.error("Error al eliminar el producto");
     }
   };
 
+  // Función para abrir el diálogo de confirmación de eliminación, no se usa porque el diálogo se abre directamente al hacer click en eliminar, pero la dejamos por si se necesita en el futuro
   const handleOpenConfirmDelete = (id: number) => {
     setConfirmDelete(id);
   };
 
+  // Renderizamos un mensaje de carga mientras se obtienen los datos del usuario o los productos
   if (isUserLoading || loadingProductos) {
     return <p className="text-center mt-10">Cargando productos...</p>;
   }

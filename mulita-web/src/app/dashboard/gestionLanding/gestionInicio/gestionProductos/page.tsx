@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@/hooks/queries";
 
+// Definimos la interfaz para un producto, que incluye su id, nombre y si se muestra en inicio
 interface Producto {
   id: number;
   nombre: string;
   mostrar_en_inicio: boolean;
 }
 
+// Definimos la función para la página de gestión de productos, que incluye la lista de productos y la funcionalidad para marcar/desmarcar si se muestran en inicio
 export default function GestionProductosPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -20,8 +22,8 @@ export default function GestionProductosPage() {
       try {
         const res = await fetch("/api/productos");
         const data = await res.json();
-        const productosArray = Array.isArray(data) ? data : (data?.productos || []);
-        setProductos(productosArray.reverse());
+        const productosArray = Array.isArray(data) ? data : (data?.productos || []); // Asegurarse de que data sea un array
+        setProductos(productosArray.reverse()); // Invertir el orden de los productos para mostrar el más reciente primero
       } catch (err) {
         console.error("Error fetching productos:", err);
         setProductos([]);
@@ -42,11 +44,11 @@ export default function GestionProductosPage() {
       if (!res.ok) throw new Error("Error actualizando producto");
 
       // Actualizar estado local
-      const updated = await res.json();
-      console.log("respuesta del patch: ", updated);
+      const updated = await res.json(); // Obtener la respuesta del backend después del PATCH
+      console.log("respuesta del patch: ", updated); // Imprimir la respuesta en la consola
 
       setProductos((prev) =>
-        prev.map((n) => (n.id === producto.id ? updated[0] : n))
+        prev.map((n) => (n.id === producto.id ? updated[0] : n)) // Actualizar el producto específico en el estado local
       );
     } catch (err) {
       console.error(err);
@@ -79,9 +81,9 @@ export default function GestionProductosPage() {
             No hay productos disponibles.
           </p>
         ) : (
-          productos.map((producto, index) => (
+          productos.map((producto, index) => ( // Renderizamos cada producto en la lista
             <div
-              key={producto.id ?? index}
+              key={producto.id ?? index} // fallback por si id es undefined
               className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6 bg-white border border-[#e1e4ed] rounded-lg shadow-sm hover:shadow-md transition"
             >
               <div className="text-base sm:text-lg font-semibold text-black break-words">
